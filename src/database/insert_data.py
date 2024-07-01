@@ -78,8 +78,7 @@ def save_to_vectorstore(text_chunks):
         for i, chunk in enumerate(text_chunks):
             chunk_id = f"doc_{i}_{chunk.metadata['id']}"
             embedding = embeddings.embed_documents([chunk.page_content])[0]
-            
-            # print("1.embedding : ", embedding)
+
             # print("2.[chunk.page_content] : ", [chunk.page_content])
             print("2.[chunk.page_content] : ", chunk.page_content)
             collection.add(

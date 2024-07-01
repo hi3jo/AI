@@ -57,7 +57,7 @@ def search_vectorstore(query_text, num_results=5):
 # 메인 함수
 def main():
     
-    # 쿼리 예시
+    #쿼리 예시
     query_text = '유서의 내용 중에는 피해자의 진술 등과 명백히 배치되는 부분도 존재한다.'
     results = search_vectorstore(query_text)
     if results is None:
