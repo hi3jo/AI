@@ -2,7 +2,7 @@ import pandas as pd
 import chromadb
 import tiktoken
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.embeddings import HuggingFaceEmbeddings
+from langchain_community.embeddings import HuggingFaceEmbeddings  # 경로 변경
 from langchain.docstore.document import Document
 
 # 벡터 DB 로드 함수
@@ -32,7 +32,8 @@ def get_embeddings():
 
 # 문서 검색 함수
 def search_vectorstore(query_text, num_results=2):
-    print("db 서채ㅣㅇ할 : ", query_text)
+    
+    print("db에서 서치해올 결과물 : ", query_text)
     embeddings = get_embeddings()
     if embeddings is None:
         print("임베딩 모델을 로드할 수 없습니다.")
@@ -49,7 +50,7 @@ def search_vectorstore(query_text, num_results=2):
             query_embeddings=[query_embedding],
             n_results=num_results
         )
-        print("문서 검색 성공")
+        print("문서 검색 성공 : ", results)
         return results
     except Exception as e:
         print(f"문서 검색 실패: {e}")

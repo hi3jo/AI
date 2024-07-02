@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-from src.database.chatDB.select_data import search_vectorstore  # 필요한 함수 가져오기
+from src.database.chatDB.select_data import search_vectorstore
 import openai
 import os
 
@@ -10,15 +10,17 @@ openai.api_key = os.getenv('OPENAI_API_KEY')
 
 def ask_chatgpt(question: str) -> str:
     
-    print("chatbot.py의 ask_chatgpt : ", question)
+    print("3.chatbot.py의 ask_chatgpt 함수로 전달 된 질문 : ", question)
     results = search_vectorstore(question)
-    print("DB 다녀옴? : ", results)
+    
+    print("4. vectorDB 다녀온 결과물 : ", results)
+    
     if results is None or len(results['documents']) == 0:
         return "검색 결과를 찾을 수 없습니다."
     
     # 검색 결과에서 첫 번째 문서를 사용합니다.
     relevant_document = results['documents'][0]
-    print("relevant_document : ", relevant_document)
+    print("5.relevant_document : ", relevant_document)
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[

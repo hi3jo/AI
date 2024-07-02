@@ -1,8 +1,7 @@
 from fastapi import FastAPI, HTTPException, APIRouter
 from pydantic import BaseModel
-from src.core.chatbot import ask_chatgpt  # 모듈화한 함수 가져오기
+from src.core.chatbot import ask_chatgpt                # 모듈화한 함수 가져오기 : 경로를 모두 포함시킨다.
 
-app = FastAPI()
 router = APIRouter()
 
 class Question(BaseModel):
@@ -17,5 +16,6 @@ async def ask(question: Question):
     if not question.question:
         raise HTTPException(status_code=400, detail="No question provided")
     
+    # 2.질문 내용을 챗GPT에게 전달.
     answer = ask_chatgpt(question.question)
     return {"answer": answer}
