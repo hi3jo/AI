@@ -81,10 +81,11 @@ def save_to_vectorstore(text_chunks):
 
             print("1.[chunk.page_content, 텍스트 데이터] : ", [chunk.page_content])
             collection.add(
-                ids=[chunk_id],
-                documents=[chunk.page_content],
-                metadatas=[{"chunk_id": chunk_id}],
-                embeddings=[embedding]
+                ids=[chunk_id]
+                ,documents=[chunk.page_content]
+                ,metadatas=[{  "chunk_id": chunk_id
+                             , "case_id" : chunk.metadata['id']}]
+                ,embeddings=[embedding]
             )
         print("벡터 스토어 저장 성공")
         return collection
