@@ -5,7 +5,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.docstore.document import Document
 
-# 벡터 DB 로드 함수
+# 3.1.벡터 DB 로드 함수
 def load_vector_db():
     try:
         chroma_client = chromadb.PersistentClient(path="./chroma.sqlite3")
@@ -16,7 +16,7 @@ def load_vector_db():
         print(f"벡터 데이터베이스 로드 실패: {e}")
         return None
 
-# CSV 데이터 로드 함수
+# 1. CSV 데이터 로드 함수
 def load_csv_data():
     try:
         df = pd.read_csv('crawling2024.csv')
@@ -33,7 +33,7 @@ def tiktoken_len(text):
     tokens = tokenizer.encode(text)
     return len(tokens)
 
-# 텍스트 청크 처리 함수
+# 2. 텍스트 청크 처리 함수
 def get_text_chunks(documents):
     try:
         text_splitter = RecursiveCharacterTextSplitter(
@@ -79,8 +79,7 @@ def save_to_vectorstore(text_chunks):
             chunk_id = f"doc_{i}_{chunk.metadata['id']}"
             embedding = embeddings.embed_documents([chunk.page_content])[0]
 
-            # print("2.[chunk.page_content] : ", [chunk.page_content])
-            print("2.[chunk.page_content] : ", chunk.page_content)
+            print("1.[chunk.page_content, 텍스트 데이터] : ", [chunk.page_content])
             collection.add(
                 ids=[chunk_id],
                 documents=[chunk.page_content],
@@ -95,22 +94,26 @@ def save_to_vectorstore(text_chunks):
 
 # 메인 함수
 def main():
+    
+    # 1. 저장할 데이터를 가지고 있는 csv파일을 적재한다.
     documents = load_csv_data()
     if documents is None:
         print("CSV 데이터를 로드할 수 없습니다.")
         return
 
+    # 2. 데이터를 작업하기 쉽게 분할하고 묶는다.  
     text_chunks = get_text_chunks(documents)
     if text_chunks is None:
         print("텍스트 청크를 처리할 수 없습니다.")
         return
 
+    # 3. 벡터 DB로 데이터를 insert 한다.
     vectorstore = save_to_vectorstore(text_chunks)
     if vectorstore is None:
         print("벡터 스토어를 생성할 수 없습니다.")
         return
 
-    print('벡터 스토어 저장 완료')
+    print('VectorDB로 csv내 데이터 저장 완료!')
 
 if __name__ == '__main__':
     main()
