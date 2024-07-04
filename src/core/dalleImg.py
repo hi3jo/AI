@@ -10,14 +10,16 @@ def generate_and_display_comic(long_sentence):
     print("1.long_sentence : ", long_sentence)
     try:
         # 문장을 일정 길이로 나누기
-        max_chars_per_prompt = 100  # 한 번에 처리할 최대 글자 수
+        # max_chars_per_prompt = 100  # 한 번에 처리할 최대 글자 수
+        max_chars_per_prompt = 50  # 한 번에 처리할 최대 글자 수
         prompts = []
         for i in range(0, len(long_sentence), max_chars_per_prompt):
             prompt = long_sentence[i:i + max_chars_per_prompt].strip()
             prompts.append(prompt)
 
         # 최소 4장, 최대 6장까지 사용
-        prompts = prompts[:6]
+        prompts = prompts[:4]
+        #prompts = prompts[:6]
         if len(prompts) < 4:
             while len(prompts) < 4:
                 prompts.append(prompts[-1])  # 마지막 문장을 반복하여 최소 4장을 맞춤
@@ -26,13 +28,13 @@ def generate_and_display_comic(long_sentence):
         print("2.prompts : ", prompts)
         for i, prompt in enumerate(prompts):
             # 안전한 프롬프트 생성
-            safe_prompt = f"Illustrate a webtoon scene: {prompt}. Make it safe and appropriate."
+            safe_prompt = f"Illustrate a Studio Ghibli-style webtoon scene: {prompt}. A person standing on a balcony, smoking a cigarette. The scene should evoke a calm and contemplative atmosphere. Make it safe and appropriate. Speech bubbles should be in Korean."
             response = openai.Image.create(
-                model="dall-e-3",  # 사용할 이미지 모델명
-                prompt=safe_prompt,
-                size="1024x1024",
-                quality="standard",
-                n=1,
+                  model="dall-e-3"            # 사용할 이미지 모델명
+                , prompt=safe_prompt
+                , size="1024x1024"
+                , quality="standard"
+                , n=1
             )
 
             image_url = response['data'][0]['url']  # 이미지 URL 가져오기
@@ -42,16 +44,16 @@ def generate_and_display_comic(long_sentence):
         if len(generated_images) > 0:
             rows = 2
             cols = 2 if len(generated_images) >= 4 else 1
-            combined_image = PILImage.new("RGB", (1024 * cols, 1024 * rows))  # 총 이미지 크기 설정
+            combined_image = PILImage.new("RGB", (512 * cols, 512 * rows))  # 총 이미지 크기 설정
 
             for idx, image_url in enumerate(generated_images):
                 response = requests.get(image_url)
                 img = PILImage.open(BytesIO(response.content))
-                img = img.resize((1024, 1024))  # 각 이미지 크기 조정
+                img = img.resize((512, 512))  # 각 이미지 크기 조정
 
                 # 이미지를 4분할하여 각 영역에 표시
-                x = (idx % cols) * 1024
-                y = (idx // cols) * 1024
+                x = (idx % cols) * 512
+                y = (idx // cols) * 512
                 combined_image.paste(img, (x, y))
 
             # 결합된 이미지 base64 인코딩
