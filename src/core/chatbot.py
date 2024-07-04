@@ -1,5 +1,7 @@
 from dotenv import load_dotenv
 from src.database.chatDB.select_data import search_vectorstore
+from src.core.save_question import connect_back
+from src.core.save_answer import save_anser
 import openai
 import os
 
@@ -10,6 +12,7 @@ openai.api_key = os.getenv('OPENAI_API_KEY')
 
 def ask_chatgpt(question: str) -> str:
     
+    ask_id = connect_back(question)
     # question = '임신했는데 남편이 양육비 안줌 관련 판례일련번호'
     print("3.chatbot.py의 ask_chatgpt 함수로 전달 된 질문 : ", question)
     results = search_vectorstore(question)
@@ -44,8 +47,14 @@ def ask_chatgpt(question: str) -> str:
     print("")
     print("-------------------------------------------------------------")
     print("화면으로 전달할 답변 데이터 :", response.choices[0].message['content'].strip())
+    
+    answer = response.choices[0].message['content'].strip()
+    
+    # GPT 답변 RDB에 저장
+    save_anser(ask_id, answer)
+    
     # GPT가 생성한 응답 반환
-    return response.choices[0].message['content'].strip()\
+    return answer
        
 if __name__ == '__main__':
     ask_chatgpt('ddd')        
