@@ -6,16 +6,17 @@ router = APIRouter()
 
 class Question(BaseModel):
     question: str
+    userid: str
 
 @router.post("/asked")
 async def ask(question: Question):
     
-    print("클라이언트로부터 전달 된 질문 : ", question)
+    print("1.Client 로부터 전달받은 질문 : ", question.question)
     
     # 1.질문 내용이 빈값인 채로 서버로 전달되었을 때.
     if not question.question:
         raise HTTPException(status_code=400, detail="No question provided")
     
     # 2.질문 내용을 챗GPT에게 전달.
-    answer = ask_chatgpt(question.question)
+    answer = ask_chatgpt(question)
     return {"answer": answer}
