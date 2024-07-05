@@ -3,19 +3,17 @@ import json
 
 def connect_back(question):
     
+    print("1. 백엔드 연결을 위한 메소드 호출 됨 : ", question)
     
-    print("1. 백엔드 연결 펑션 들어옴 : ", question)
-    # 백엔드 서버 URL
-    backend_url = 'http://localhost:8080/api/chatbot/ask'
-
-    # 질문과 답변 데이터 (예시)
-    ask = question
-    answer = '이것은 답변입니다.'
+    backend_url = 'http://localhost:8080/api/chatbot/ask'   # 백엔드 서버 URL
+    ask         = question.question                         # 사용자의 질문
+    userid      = question.userid                           # 사용자 아이디
 
     # 데이터를 JSON 형식으로 만듦
-    data = { 'ask': ask }
+    data = {  'ask'    : ask 
+            , 'userId' : userid}
 
-    print("2. 질문 데이터 들어옴 :", data)
+    print("2. 벡엔드로 전달할 파라미터 :", data)
     # JSON 데이터를 HTTP POST 요청으로 백엔드 서버에 전송
     try:
         
