@@ -1,6 +1,6 @@
 from fastapi import HTTPException, APIRouter
 from pydantic import BaseModel
-from src.core.webtoon.dalleImg import generate_and_display_comic
+from src.core.webtoon.basic_dalle3_ai import generate_webtoon
 
 router = APIRouter()
 
@@ -17,7 +17,7 @@ async def generate_webtoon_endpoint(story: WebtoonPrompt):
         raise HTTPException(status_code=400, detail="No prompt provided")
     
     # 2. OpenAI가 제공하는 DALL-E 3 를 이용하여 4컷 웹툰을 생성하고 base64 인코딩 처리 함.
-    webtoon_image_base64 = generate_and_display_comic(story.question)
+    webtoon_image_base64 = generate_webtoon(story.story)
     if not webtoon_image_base64:
         raise HTTPException(status_code=500, detail="Failed to generate webtoon")
     
