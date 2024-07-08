@@ -1,6 +1,6 @@
 from fastapi import HTTPException, APIRouter
 from pydantic import BaseModel
-from src.core.webtoon.basic_dalle3_ai import generate_webtoon
+from src.core.webtoon.dalle3_ai import generate_webtoon
 
 router = APIRouter()
 
@@ -11,7 +11,7 @@ class WebtoonPrompt(BaseModel):
 @router.post("/generate-webtoon")
 async def generate_webtoon_endpoint(story: WebtoonPrompt):
     
-    print("1.webtoon_api.py : 화면으로부터 전달받은 스토리 : ", story.story)
+    #print("1.webtoon_api.py : 화면으로부터 전달받은 스토리 : ", story.story)
     # 1.Client로부터 전달 된 사연이 빈 값인지 확인
     if not story.story:
         raise HTTPException(status_code=400, detail="No prompt provided")
