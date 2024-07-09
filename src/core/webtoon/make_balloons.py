@@ -1,20 +1,22 @@
 from PIL import Image, ImageDraw, ImageFont
+import os
 
-FONT_PATH = r"C:\ai\adventurer\AI\src\core\webtoon\ChosunCentennial_ttf.ttf"
-def make_korean_balloons(img):
-    
+#FONT_PATH = r"C:\ai\adventurer\AI\src\core\webtoon\ChosunCentennial_ttf.ttf"
+# 현재 파일의 디렉토리를 기준으로 폰트 파일 경로 설정
+BASE_DIR  = os.path.dirname(os.path.abspath(__file__))
+FONT_PATH = os.path.join(BASE_DIR, 'ChosunCentennial_ttf.ttf')
+
+# 한국말 설명 추가.
+def make_korean_balloons(img, ct):
+   
     # Load the image
-    print("4...make_korean_balloons 펑션")
     image = img
-    print("4.1....make_korean_balloons 펑션")
     # Load the font
     font_path = FONT_PATH
-    print("4.2....make_korean_balloons 펑션")
     font = ImageFont.truetype(font_path, 40)
-    print("4.3....make_korean_balloons 펑션")
     # Coordinates for the text
     coordinates = [(290, 40), (500, 330)]
-    new_text = "안녕 그리고 미안"
+    new_text = ct
 
     # Create a drawing context
     draw = ImageDraw.Draw(image)
