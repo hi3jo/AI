@@ -4,29 +4,21 @@ import requests
 from io import BytesIO
 import base64
 from fastapi import HTTPException
+import time
 
+# prompt가 적용되지 않은, 사용자로부터 전달받은 사연으로 dalle3에게 4개의 칸으로 나뉜 1개의 이미지 생성 요청
+# 생성되는 시간이 적게 소요 됨.
 def generate_webtoon(content):
     
-    #print("2.dalle3_ai.py : webtoon_api로 부터 전달받은 story : ", content)
+    print("1.basic_dalle3_ai.py : webtoon_api로 부터 전달받은 story : ", content)
     try:
         
-        style_prompt = """
-            웹툰 스타일:
-            - 매우 상세하고 사실적인 한국 웹툰 스타일
-            - 캐릭터들은 일반적인 한국 사람들의 얼굴
-            - 남성 캐릭터는 찌질하고 스포츠컷 머리
-            - 여성 캐릭터는 긴 머리, 큰 눈, 부드러운 얼굴 선
-            - 배경은 단순하지만 효과적으로 분위기를 전달
-            - 다양한 컬러 사용, 약간의 음영 처리
-            - 대화 말풍선은 단순하고 깔끔한 디자인
-            """
-        
-        # 프롬프트 생성
-        prompt = f"{content}, 4컷에서 6컷 사이의 웹툰 생성"
+        start_time = time.time()                                            # 시간 측정 시작
+
         # OpenAI API로 전달할 데이터
         response = openai.Image.create(
-              model="dall-e-3"                                                                                  # 사용할 이미지 모델명
-            , prompt=prompt + style_prompt
+              model="dall-e-3"                                              # 사용할 이미지 모델명
+            , prompt=content
             , size="1024x1024"
             , quality="hd"
             , n=1
@@ -43,6 +35,9 @@ def generate_webtoon(content):
         buffered = BytesIO()
         img.save(buffered, format="PNG")
         img_str = base64.b64encode(buffered.getvalue()).decode()
+        
+        end_time = time.time()                                              # 시간 측정 종료
+        print(f"Image generation time: {end_time - start_time} seconds")
 
         return img_str
 
