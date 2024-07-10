@@ -1,4 +1,5 @@
 # 사연 요약하기
+import openai
 def summarize_story(story):
     try:
         
