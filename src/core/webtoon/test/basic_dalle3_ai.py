@@ -10,7 +10,6 @@ import time
 # 생성되는 시간이 적게 소요 됨.
 def generate_webtoon(content):
     
-    print("1.basic_dalle3_ai.py : webtoon_api로 부터 전달받은 story : ", content)
     try:
         
         start_time = time.time()                                            # 시간 측정 시작
@@ -25,7 +24,6 @@ def generate_webtoon(content):
         )
 
         image_url = response['data'][0]['url']
-        #print("3.generated_image_url : ", image_url)
 
         # 이미지 다운로드 및 처리
         response = requests.get(image_url)

@@ -1,15 +1,14 @@
 def set_webtoon_style():
     
-    style_prompt = """
-        Webtoon Style:
-        - Very detailed and realistic Korean webtoon style
-        - Characters have typical Korean facial features
-        - Male character is nerdy with a sports cut hairstyle
-        - Female character has middle hair, big eyes, and soft facial lines
-
-        Image Details:
-        - Without dialogue bubbles and text
-    """
+    style_prompt = (
+                    "웹툰 스타일:\n"
+                    "- 사실적인 한국 웹툰 스타일\n"
+                    "- 남자 : 이마를 덮는 짧은 머리에 흰색 티셔츠"
+                    "- 여자 : 어깨까지 오는 머리에 흰색 원피스"
+                    "- 배경 : 집 \n"
+                    "- 이 장면에 등장하지 않는 캐릭터는 추가하지 말것"
+    )
+    
     return style_prompt
 
 # 사용하지 않지만 참고를 위해 남겨놓은 코드
@@ -35,4 +34,15 @@ def ko_original_webtoon_style():
         "폰뱅킹 이체내역도 있고 통화녹음도 있네요. 진짜 눈물이.. 대체 왜 이러는지.. 너무 열받아 잠도 못 자고 글 씁니다.",
         "왜 그럴까요.. 이혼이 답이겠죠? 다행히 아이 없습니다."
     ]
+    
+    style_prompt = """
+        Webtoon Style:
+        - Very detailed and realistic Korean webtoon style
+        - Characters have typical Korean facial features
+        - Male character is nerdy with a sports cut hairstyle
+        - Female character has middle hair, big eyes, and soft facial lines
+
+        Image Details:
+        - Without dialogue bubbles and text
+    """
     return style_prompt

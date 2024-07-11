@@ -1,9 +1,9 @@
 import openai
 from src.core.webtoon.utils.translate_to_ko import translate_ko
 # 2024.07.10.수 : kyj 작성
-def generate_prompt(i, sep_story):
+def generate_prompt(i, sep_story, style):
     
-    print(f"{i}.1.make_prompt.py로 전달 된 text : {sep_story}\n")
+    print(f"{i}번째 내용\n 1) make_prompt.py로 전달 된 text : {sep_story}\n")
     #gpt_model = "gpt-3.5-turbo"
     gpt_model = "gpt-4"
     
@@ -12,13 +12,13 @@ def generate_prompt(i, sep_story):
           model=gpt_model
         , messages=[
              {"role": "system", "content": "You are an assistant that creates detailed prompts for generating images."}
-           , {"role": "user",   "content": sep_story}
+           , {"role": "user", "content": sep_story}
+           , {"role": "assistant", "content": style}
         ]
-        #, max_tokens=200  # 생성된 응답의 최대 토큰 수를 100으로 제한
     )
     
     prompt = response['choices'][0]['message']['content']
-    print(f"{i}.2. 영문 prompt 출력 : ", prompt)
+    print(f"{i}번째 내용\n 2) 영문 prompt 출력 : ", prompt)
     print()
     
     #trs_prpt = translate_ko(prompt)
@@ -30,7 +30,7 @@ def generate_prompt(i, sep_story):
     
     #print(f"{i}.3.make_prompt.py({gpt_model}가 생성한 prompt) : ", trs_prpt)
     print("")
-    print(f"{i}.4.총 사용된 토큰 수: {total_tokens}, 비용: ${cost:.4f} \n")
+    print(f"{i}번째 내용\n 3) 총 사용된 토큰 수: {total_tokens}, 비용: ${cost:.4f} \n")
     return prompt
 
 # prompt에 따른 대략적인 비용 계산

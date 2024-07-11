@@ -26,12 +26,10 @@ def generate_webtoon(content):
         images = []
         start_time = time.time()
         for i, text in enumerate(content):
-            
             no = i+1;
             # 사용자 요청
-            #user_request = f"{text} 이 내용에 대해 Ghibli style 웹툰 형식으로 그려줘. 내용에 '나'는 여자야"
-            user_request = text
-            prompt = generate_prompt(no, user_request)
+            #user_request = f"{text} \n {style_prompt}"
+            prompt = generate_prompt(no, text, style_prompt)
             
             # OpenAI API로 전달할 데이터
             response = openai.Image.create(
