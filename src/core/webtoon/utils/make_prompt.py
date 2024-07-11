@@ -4,8 +4,8 @@ from src.core.webtoon.utils.translate_to_ko import translate_ko
 def generate_prompt(i, sep_story):
     
     print(f"{i}.1.make_prompt.py로 전달 된 text : {sep_story}\n")
-    #gpt_model = "gpt-3.5-turbo"
-    gpt_model = "gpt-4"
+    gpt_model = "gpt-3.5-turbo"
+    #gpt_model = "gpt-4"
     
     # 1.ChatGPT를 사용하여 prompt 생성
     response = openai.ChatCompletion.create(
