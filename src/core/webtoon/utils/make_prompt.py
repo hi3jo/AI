@@ -4,8 +4,8 @@ from src.core.webtoon.utils.translate_to_ko import translate_ko
 def generate_prompt(i, sep_story):
     
     print(f"{i}.1.make_prompt.py로 전달 된 text : {sep_story}\n")
-    gpt_model = "gpt-3.5-turbo"
-    #gpt_model = "gpt-4"
+    #gpt_model = "gpt-3.5-turbo"
+    gpt_model = "gpt-4"
     
     # 1.ChatGPT를 사용하여 prompt 생성
     response = openai.ChatCompletion.create(
@@ -14,6 +14,7 @@ def generate_prompt(i, sep_story):
              {"role": "system", "content": "You are an assistant that creates detailed prompts for generating images."}
            , {"role": "user",   "content": sep_story}
         ]
+        #, max_tokens=200  # 생성된 응답의 최대 토큰 수를 100으로 제한
     )
     
     prompt = response['choices'][0]['message']['content']

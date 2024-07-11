@@ -12,14 +12,10 @@ from src.core.webtoon.utils.hug_sum import sum
 from src.core.webtoon.utils.make_prompt import generate_prompt
 import time
 
-# 사용자 요청을 기반으로 프롬프트 생성
-
 def generate_webtoon(content):
 
     try:
-        
-        #context = ["타지로 이사와서 의지할 사람이 당신밖에 없었잖아.", "한번만 더 이런 일 있으면 이혼할 거라고 했잖아.", "회식이라고 나가더니 새벽 2시에 들어와서 정말 찝찝했어.", "헉, 폰을 뒤졌더니 폰번호 보낸 거랑 통화녹음이 있더라."]
-       
+
         content = [  "남편이 요즘 나에게 소원해짐"
                    , "알고 봤더니 20대 동료와 바람피는 대화를 발견함. 성적인 대화를 발견함"
                    , "남편 잘못으로 내가 이혼을 요구함"
@@ -31,10 +27,15 @@ def generate_webtoon(content):
         start_time = time.time()
         for i, text in enumerate(content):
             
-            #prompt = generate_prompt(i, text) + f"/n Create a {style_prompt}"
-            prompt = generate_prompt(i, text)
+            no = i+1;
+            # 사용자 요청
+            #user_request = f"{text} 이 내용에 대해 Ghibli style 웹툰 형식으로 그려줘. 내용에 '나'는 여자야"
+            user_request = text
+            prompt = generate_prompt(no, user_request)
+            
+            # OpenAI API로 전달할 데이터
             response = openai.Image.create(
-                model="dall-e-3"                        # 사용할 이미지 모델명
+                  model="dall-e-3"                        # 사용할 이미지 모델명
                 , prompt=prompt
                 , size="1024x1024"
                 , n=1
@@ -72,5 +73,7 @@ def generate_webtoon(content):
         print(f"Unexpected error: {e}")
         raise HTTPException(status_code=500, detail=f"Unexpected error: {e}")    
     
-           # 공통 캐릭터와 설정
-        #character_description = "Same character appears in all frames, consistent appearance"
+# 공통 캐릭터와 설정
+#character_description = "Same character appears in all frames, consistent appearance"
+#context = ["타지로 이사와서 의지할 사람이 당신밖에 없었잖아.", "한번만 더 이런 일 있으면 이혼할 거라고 했잖아.", "회식이라고 나가더니 새벽 2시에 들어와서 정말 찝찝했어.", "헉, 폰을 뒤졌더니 폰번호 보낸 거랑 통화녹음이 있더라."]
+#prompt = generate_prompt(i, text) + f"/n Create a {style_prompt}"

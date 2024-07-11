@@ -1,6 +1,24 @@
 from PIL import Image as PILImage
 from datetime import datetime
+import requests
+from io import BytesIO
 
+# 현재 적용하고 있는 코드
+def combine_images_fix_size(images):
+    
+    # 이미지를 2x2 그리드로 합치기
+    grid_size = 1024
+    combined_img = PILImage.new('RGB', (grid_size * 2, grid_size * 2))
+
+    combined_img.paste(images[0], (0, 0))
+    combined_img.paste(images[1], (grid_size, 0))
+    combined_img.paste(images[2], (0, grid_size))
+    combined_img.paste(images[3], (grid_size, grid_size))
+    return combined_img
+
+
+
+# 사이즈 조정하는 로직이 포함된 코드이나 원하는 결과물은 나오지 않음.
 def combine_images(images, rows, cols, scale):
     
     print("combine_images : 이미지 크기 줄여주는지 확인할 것.")
@@ -25,14 +43,31 @@ def combine_images(images, rows, cols, scale):
     print(f"이미지가 {file_name}에 저장되었습니다.")
     return combined_img
 
-def combine_images_fix_size(images):
-    
-    # 이미지를 2x2 그리드로 합치기
-    grid_size = 1024
-    combined_img = PILImage.new('RGB', (grid_size * 2, grid_size * 2))
 
-    combined_img.paste(images[0], (0, 0))
-    combined_img.paste(images[1], (grid_size, 0))
-    combined_img.paste(images[2], (0, grid_size))
-    combined_img.paste(images[3], (grid_size, grid_size))
-    return combined_img
+
+#image_url = response['data'][0]['url']
+#print(f"Generated image for panel {i+1}: {image_url}")
+#generated_images.append(image_url)
+#generated_images = []  # Dalle3로부터 생성된 이미지를 담을 리스트
+def combine(generated_images):
+ # 모든 이미지를 다운로드 및 합치기
+    images = []
+    for image_url in generated_images:
+        response = requests.get(image_url)
+        img = PILImage.open(BytesIO(response.content))
+        images.append(img)
+
+    # 4개의 이미지를 하나로 합침
+    widths, heights = zip(*(i.size for i in images))
+
+    total_width = sum(widths)
+    max_height = max(heights)
+
+    new_im = PILImage.new('RGB', (total_width, max_height))
+
+    x_offset = 0
+    for im in images:
+        new_im.paste(im, (x_offset, 0))
+        x_offset += im.width
+    
+    return new_im
