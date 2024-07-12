@@ -1,33 +1,52 @@
-# 사연 요약하기
-import openai
-def summarize_story(story):
-    try:
-        
-        prm = """Summarize the story into 4 paragraphs according to the following flow:
-1. Initial problem
-2. Escalation of conflict
-3. Key incident
-4. Conclusion and emotions"""
-        # ChatGPT API 호출
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": prm},
-                {"role": "user", "content": story}
-            ],
-            max_tokens=150,
-            temperature=0.7,
-            stop=["\n"]
-        )
+from transformers import PreTrainedTokenizerFast, BartForConditionalGeneration
 
-        # API 응답 처리
-        if response['choices'] and len(response['choices']) > 0:
-            summary = response['choices'][0]['message']['content']
-        else:
-            summary = "API에서 응답을 받지 못했습니다."
+# 1) EbanLee/kobart-summary-v3
+def summarize_story(content):
+    
+    # Load Model and Tokenizer
+    tokenizer = PreTrainedTokenizerFast.from_pretrained("EbanLee/kobart-summary-v3")
+    model = BartForConditionalGeneration.from_pretrained("EbanLee/kobart-summary-v3")
 
-    except Exception as e:
-        print(f"Error: {e}")
-        summary = "API 호출 중 오류가 발생했습니다."
+    # Encoding
+    input_text = content
+    inputs = tokenizer(input_text, return_tensors="pt", padding="max_length", truncation=True, max_length=1026)
 
-    return summary
+    # Generate Summary Text Ids
+    # summary_text_ids = model.generate(
+    # input_ids=inputs['input_ids'],
+    # attention_mask=inputs['attention_mask'],
+    # bos_token_id=model.config.bos_token_id,
+    # eos_token_id=model.config.eos_token_id,
+    # length_penalty=1.2,
+    # max_length=280,
+    # min_length=70,
+    # num_beams=6,
+    # repetition_penalty=1.5,
+    # no_repeat_ngram_size=4,     #몇 단락으로 나눌지에 대한 기준(현재 4단락)
+    # )
+    
+    summary_text_ids = model.generate(
+    input_ids=inputs['input_ids'],
+    attention_mask=inputs['attention_mask'],
+    bos_token_id=model.config.bos_token_id,
+    eos_token_id=model.config.eos_token_id,
+    length_penalty=1.0,
+    max_length=300,
+    min_length=12,
+    num_beams=6,
+    repetition_penalty=1.5,
+    no_repeat_ngram_size=15,
+    )
+
+    # Decoding Text Ids
+    sum_text = tokenizer.decode(summary_text_ids[0], skip_special_tokens=True)
+   
+    print("")
+    print("사연 요약 : ", sum_text)
+    return sum_text
+
+
+if __name__ == '__main__':
+    
+    content = ""
+    summarize_story(content)

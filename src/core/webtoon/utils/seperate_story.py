@@ -1,4 +1,4 @@
-def seperater_contents(sentence):
+def separate_contents(sentence):
     
     # 텍스트를 무조건 4단락으로 나누기
     num_prompts = 4
@@ -14,5 +14,24 @@ def seperater_contents(sentence):
             end_idx = (i + 1) * chars_per_prompt
         prompt = sentence[start_idx:end_idx].strip()
         prompts.append(prompt)
+
+    return prompts
+
+def separate_contents_spacebar(sentence, num_newlines=15):
+    # 입력 문장을 개행 문자('\n\n') 15개가 나올 때마다 자르기
+    prompts = []
+    current_prompt = ""
+
+    for char in sentence:
+        current_prompt += char
+        
+        # 개행 문자('\n\n') 15개가 나오면 현재 prompt를 리스트에 추가하고 초기화
+        if char == '\n' and len(current_prompt.split('\n\n')) == num_newlines:
+            prompts.append(current_prompt.strip())
+            current_prompt = ""
+
+    # 마지막 남은 부분 추가
+    if current_prompt:
+        prompts.append(current_prompt.strip())
 
     return prompts
