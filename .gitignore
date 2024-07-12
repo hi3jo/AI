@@ -1,1 +1,12 @@
+# Python bytecode files
+*.pyc
+__pycache__/
+
+# 환경 설정 파일들
 .env
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# VS Code 설정 파일
+.vscode/
