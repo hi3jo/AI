@@ -16,9 +16,14 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # .env 파일의 환경 변수를 로드합니다.
-# OpenAI API 키 설정
 load_dotenv()
+
+# OpenAI API 키 설정
 openai.api_key = os.getenv('OPENAI_API_KEY')
+
+# API 키가 설정되지 않았을 경우 예외 발생
+if not openai.api_key:
+    raise ValueError("OpenAI API 키가 설정되지 않았습니다.")
 
 # 텍스트 임베딩
 model_name = "paraphrase-MiniLM-L6-v2"
