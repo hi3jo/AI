@@ -11,6 +11,14 @@ logger = logging.getLogger(__name__)
 # ChromaDB 클라이언트 초기화
 client = chromadb.PersistentClient(path="./data")
 
+# 컬렉션 삭제
+# def delete_collection(client, collection_name):
+#     try:
+#         client.delete_collection(name=collection_name)
+#         logger.info(f"컬렉션 '{collection_name}' 삭제 성공")
+#     except Exception as e:
+#         logger.error(f"컬렉션 삭제 실패: {e}")
+
 # 컬렉션 가져오기 또는 생성
 def get_or_create_collection(client, collection_name):
     try:
@@ -29,5 +37,6 @@ def get_or_create_collection(client, collection_name):
     
     return collection
 
-# 컬렉션 생성 또는 가져오기
+# 기존 컬렉션 삭제 및 새로운 컬렉션 생성 또는 가져오기
+# delete_collection(client, "case-law3")
 collection = get_or_create_collection(client, "case-law3")
