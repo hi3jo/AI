@@ -1,1 +1,1 @@
-# 이 파일은 core/chat 폴더를 Python 패키지로 인식하도록 합니다
+# 이 파일은 core/data_upload 폴더를 Python 패키지로 인식하도록 합니다
