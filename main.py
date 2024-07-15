@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from src.api.webtoon_api import router as webtoon_router
 from src.api.data_upload_api import router as upload_router_v4
-from src.api.chat_query import router as query_router_v4
+from src.api.chat_query_api import router as query_router_v4
 
 app = FastAPI()
 
