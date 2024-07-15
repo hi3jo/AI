@@ -21,6 +21,9 @@ load_dotenv()
 # OpenAI API 키 설정
 openai.api_key = os.getenv('OPENAI_API_KEY')
 
+# API 키가 제대로 로드되었는지 확인
+print(openai.api_key)
+
 # API 키가 설정되지 않았을 경우 예외 발생
 if not openai.api_key:
     raise ValueError("OpenAI API 키가 설정되지 않았습니다.")
