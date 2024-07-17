@@ -38,4 +38,9 @@ def analyze_image(file: UploadFile):
         prediction = predicted.item()
 
     predicted_class = class_names[prediction]
-    return {'answer': f'Predicted class: {predicted_class}'}
+    is_possible = predicted_class in ['couplewalking', 'hug', 'kiss']
+
+    return {
+        'answer': f'{predicted_class}',
+        'isPossible': is_possible
+    }
