@@ -4,6 +4,7 @@ import json
 import logging
 from dotenv import load_dotenv
 from langchain_community.chat_message_histories import ChatMessageHistory
+# 랭체인 추가 적용해봐야함
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO)
