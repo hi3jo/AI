@@ -18,8 +18,8 @@ jobs:
         HOST: ${{ secrets.EC2_HOST }}
         USER: ${{ secrets.EC2_USER }}
         SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
-        REPO_NAME: ${{ github.repository }}
-        BRANCH_NAME: ${{ github.ref_name }}
+        REPO_NAME: hi3jo.AI
+        BRANCH_NAME: develop-branch
       run: |
         echo "$SSH_PRIVATE_KEY" > key.pem
         chmod 600 key.pem
@@ -31,7 +31,7 @@ jobs:
           # Clone the repository and checkout the branch
           cd /home/$USER
           rm -rf $REPO_NAME
-          git clone https://github.com/${{ github.repository }}.git
+          git clone https://github.com/hi3jo/AI.git
           cd $REPO_NAME
           git checkout $BRANCH_NAME
           
