@@ -4,6 +4,8 @@ import json
 import logging
 from dotenv import load_dotenv
 
+# 로깅 설정
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # .env 파일의 환경 변수를 로드합니다.
@@ -15,6 +17,9 @@ openai.api_key = os.getenv('OPENAI_API_KEY')
 # API 키가 제대로 로드되었는지 확인
 if not openai.api_key:
     raise ValueError("OpenAI API 키가 설정되지 않았습니다.")
+
+# 대화기록 저장을 위한 리스트 초기화
+conversation_history = []
 
 def classify_question(query_text):
     classification_prompt = f'''
@@ -53,7 +58,7 @@ def classify_question(query_text):
     1. 양육비 - Questions related to non-payment of child support
        Example: "양육비를 지급하지 않는 남편에게 어떻게 대처해야 하나요?"
     2. 폭행 - Assault cases
-       Example: "계속된 폭행 등으로 혼인이 파탄됐는데 이혼할 수 있나요?"
+       Example: "계속된 폭행 등으로 혼인이 파탄됐어"
     3. 재산분할 - Division of joint property
        Example: "이혼 시 공동 재산을 어떻게 나눌 수 있나요?"
     4. 위자료 - Compensation for mental suffering
@@ -63,9 +68,9 @@ def classify_question(query_text):
     6. 성기능 장애 - Marital annulment due to sexual dysfunction
        Example: "성기능 장애로 혼인취소 할 수 있어?"
     7. 혼외자 출산 - Family breakdown due to extramarital childbirth
-       Example: "남편이 다른 여성과 혼외자를 출산했는데 이혼할 수 있어?"
+       Example: "남편이 다른 여성과 혼외자를 출산했어"
     8. 유책배우자 - Divorce claims from at-fault spouse
-       Example: "유책배우자가 이혼 청구 할 수 있나요?"
+       Example: "유책배우자가 이혼청구 할 수 있나요?"
     9. ETC question - Questions not covered by the above categories.
        Example: "이혼 후 양육권은 어떻게 결정되나요?"
     '''
@@ -83,16 +88,10 @@ def classify_question(query_text):
         )
         logger.info(f"OpenAI 질문 분류 응답 생성 완료: {classification_response}")
         
-        # 응답 내용을 문자열로 먼저 출력하여 확인
         classified_question_content = classification_response['choices'][0]['message']['content']
         logger.info(f"응답 내용: {classified_question_content}")
 
-        # 불필요한 문자 제거 (```json 및 ```)
-        # JSON 디코딩 오류를 해결한 핵심 부분
-        # 문자열에서 ```json 및 ``` 문자를 제거하여 순수 JSON 형식으로 변환한 후 디코딩을 시도
         classified_question_content = classified_question_content.replace('```json', '').replace('```', '').strip()
-
-        # JSON 형식이 맞는지 검증
         classified_question = json.loads(classified_question_content)
         return classified_question
     except json.JSONDecodeError as e:
@@ -102,7 +101,7 @@ def classify_question(query_text):
         logger.error(f"OpenAI 질문 분류 응답 생성 중 오류 발생: {e}")
         raise ValueError("질문 분류 중 오류가 발생했습니다.")
 
-def generate_response(query_text, question_type):
+def generate_response(query_text, question_type, conversation_history):
     response_prompt = f'''
     # Role
     You are a helpful assistant.
@@ -119,8 +118,10 @@ def generate_response(query_text, question_type):
     # Response
     '''
 
+    # 이전 대화기록을 포함한 메시지 생성
     response_messages = [
-        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "system", "content": "You are a helpful assistant."}
+    ] + conversation_history + [
         {"role": "user", "content": response_prompt}
     ]
 
