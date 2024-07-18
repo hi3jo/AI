@@ -18,7 +18,7 @@ jobs:
         HOST: ${{ secrets.EC2_HOST }}
         USER: ${{ secrets.EC2_USER }}
         SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
-        REPO_NAME: hi3jo.AI
+        REPO_NAME: hi3jo/AI
         BRANCH_NAME: develop-branch
       run: |
         echo "$SSH_PRIVATE_KEY" > key.pem
