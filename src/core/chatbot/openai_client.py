@@ -69,11 +69,23 @@ def classify_question(query_text):
     9. ETC question - Questions not covered by the above categories.
        Example: "이혼 후 양육권은 어떻게 결정되나요?"
     '''
-
+    #일반답변
     classification_messages = [
         {"role": "system", "content": "You are a professional and accurate text classifier machine and translator machine."},
         {"role": "user", "content": classification_prompt}
     ]
+
+    # ETC question
+    # classification_messages = [
+    #     {"role": "system", "content": "you are a ai lawyer. "},
+    #     {"role": "user", "content": classification_prompt},
+    #     {"role": "", "content": ""},
+    #     {"role": "user", "content": classification_prompt},
+    #     {"role": "", "content": ""},
+    #     {"role": "user", "content": classification_prompt},
+    #     {"role": "", "content": ""},
+    #     {"role": "user", "content": ''},
+    # ]
 
     try:
         classification_response = openai.ChatCompletion.create(
