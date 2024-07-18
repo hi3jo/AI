@@ -1,4 +1,4 @@
-# 나의 python 버전
+# 나의 python 버전(3.12.4 최신)
 FROM python:3.12.4
 
 WORKDIR /app
