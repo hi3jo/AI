@@ -19,6 +19,9 @@ logger = logging.getLogger(__name__)
 # 쿼리 라우터 정의
 router = APIRouter()
 
+# 대화기록 저장을 위한 리스트 초기화
+conversation_history = []
+
 @router.get("/query-v3/")
 async def query_chromadb(query_text: str = Query(..., description="유사한 문서를 검색할 쿼리 텍스트"), num_results: int = Query(5, description="검색할 유사 문서의 개수"), collection = Depends(get_chroma_client)):
     try:
@@ -56,10 +59,17 @@ async def query_chromadb(query_text: str = Query(..., description="유사한 문
     # 질문 타입 분류 및 응답 생성
     try:
         classified_question = classify_question(query_text)
-        final_response = generate_response(query_text, classified_question['question_type'])
+        final_response = generate_response(query_text, classified_question['question_type'], conversation_history)
     except Exception as e:
         logger.error(f"OpenAI 응답 생성 중 오류 발생: {e}")
         raise HTTPException(status_code=500, detail="질문 분류 중 오류가 발생했습니다.")
+
+    # 대화기록에 질문과 분류된 질문 유형 추가
+    conversation_history.append({"role": "user", "content": query_text})
+    conversation_history.append({"role": "assistant", "content": f"Classified question type: {classified_question['question_type']}"})
+    conversation_history.append({"role": "assistant", "content": final_response})
+
+    logger.info(f"대화 기록 업데이트: {conversation_history}")
 
     # 가장 유사한 판례의 메타데이터 추출 (최대 2개)
     most_similar_metadata = metadata_list[:2] if metadata_list else []
