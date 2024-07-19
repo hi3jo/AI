@@ -4,7 +4,7 @@ import json
 import logging
 from dotenv import load_dotenv
 from langchain_community.chat_message_histories import ChatMessageHistory
-# 랭체인 추가 적용해봐야함
+from langchain_core.prompts import ChatPromptTemplate #질문 분류 프롬프트
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO)
@@ -25,8 +25,8 @@ chat_history = ChatMessageHistory()
 
 # 질문을 분류하는 함수
 def classify_question(query_text):
-    # 분류 프롬프트 정의
-    classification_prompt = f'''
+    # ChatPromptTemplate를 사용하여 분류 프롬프트 생성
+    prompt_template = ChatPromptTemplate.from_template('''
     # Role
     You are a professional and accurate text classifier machine and translator machine.
 
@@ -77,12 +77,12 @@ def classify_question(query_text):
        Example: "유책배우자가 이혼청구 할 수 있나요?"
     9. ETC question - Questions not covered by the above categories.
        Example: "이혼 후 양육권은 어떻게 결정되나요?"
-    '''
+    ''')
 
     # 분류 요청 메시지 생성
     classification_messages = [
         {"role": "system", "content": "You are a professional and accurate text classifier machine and translator machine."},
-        {"role": "user", "content": classification_prompt}
+        {"role": "user", "content": prompt_template.format(query_text=query_text)}
     ]
 
     try:
@@ -117,7 +117,7 @@ def generate_response(query_text, question_type, chat_history, first_interaction
     You are a helpful assistant.
 
     # Task
-    Provide a detailed and informative answer to the following question based on its type:
+    Provide a detailed and informative answer to the following question based on its type. Please provide the response in Korean.
 
     ## Question
     "{query_text}"
