@@ -3,6 +3,7 @@ import os
 import json
 import logging
 from dotenv import load_dotenv
+from langchain_community.chat_message_histories import ChatMessageHistory
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO)
@@ -18,10 +19,12 @@ openai.api_key = os.getenv('OPENAI_API_KEY')
 if not openai.api_key:
     raise ValueError("OpenAI API 키가 설정되지 않았습니다.")
 
-# 대화기록 저장을 위한 리스트 초기화
-conversation_history = []
+# 대화기록 저장을 위한 ChatMessageHistory 초기화
+chat_history = ChatMessageHistory()
 
+# 질문을 분류하는 함수
 def classify_question(query_text):
+    # 분류 프롬프트 정의
     classification_prompt = f'''
     # Role
     You are a professional and accurate text classifier machine and translator machine.
@@ -75,12 +78,14 @@ def classify_question(query_text):
        Example: "이혼 후 양육권은 어떻게 결정되나요?"
     '''
 
+    # 분류 요청 메시지 생성
     classification_messages = [
         {"role": "system", "content": "You are a professional and accurate text classifier machine and translator machine."},
         {"role": "user", "content": classification_prompt}
     ]
 
     try:
+        # OpenAI의 ChatCompletion API를 사용하여 질문 분류 요청
         classification_response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=classification_messages,
@@ -88,9 +93,11 @@ def classify_question(query_text):
         )
         logger.info(f"OpenAI 질문 분류 응답 생성 완료: {classification_response}")
         
+        # 응답 내용 추출 및 로그에 기록
         classified_question_content = classification_response['choices'][0]['message']['content']
         logger.info(f"응답 내용: {classified_question_content}")
 
+        # 불필요한 문자를 제거하고 JSON 형식으로 변환
         classified_question_content = classified_question_content.replace('```json', '').replace('```', '').strip()
         classified_question = json.loads(classified_question_content)
         return classified_question
@@ -101,7 +108,9 @@ def classify_question(query_text):
         logger.error(f"OpenAI 질문 분류 응답 생성 중 오류 발생: {e}")
         raise ValueError("질문 분류 중 오류가 발생했습니다.")
 
-def generate_response(query_text, question_type, conversation_history):
+# 응답을 생성하는 함수
+def generate_response(query_text, question_type, chat_history, first_interaction=False, similar_docs=None, most_similar_info=None, max_context_length=16385):
+    # 응답 프롬프트 정의
     response_prompt = f'''
     # Role
     You are a helpful assistant.
@@ -118,14 +127,16 @@ def generate_response(query_text, question_type, conversation_history):
     # Response
     '''
 
-    # 이전 대화기록을 포함한 메시지 생성
+    # 이전 대화기록을 포함한 메시지 생성 (최대 컨텍스트 길이를 초과하지 않도록 제한)
+    context_messages = chat_history.messages[-max_context_length:] if len(chat_history.messages) > max_context_length else chat_history.messages
     response_messages = [
         {"role": "system", "content": "You are a helpful assistant."}
-    ] + conversation_history + [
+    ] + context_messages + [
         {"role": "user", "content": response_prompt}
     ]
 
     try:
+        # OpenAI의 ChatCompletion API를 사용하여 응답 생성 요청
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=response_messages,
@@ -133,6 +144,12 @@ def generate_response(query_text, question_type, conversation_history):
         )
         logger.info(f"OpenAI 응답 생성 완료: {response}")
         final_response = response['choices'][0]['message']['content']
+        
+        # 첫 번째 인터랙션일 경우 추가 정보 저장
+        if first_interaction and similar_docs and most_similar_info:
+            chat_history.add_message({"role": "system", "content": f"Results: {similar_docs}"})
+            chat_history.add_message({"role": "system", "content": f"Most similar info: {most_similar_info}"})
+        
         return final_response
     except Exception as e:
         logger.error(f"OpenAI 응답 생성 중 오류 발생: {e}")
