@@ -4,7 +4,8 @@ import json
 import logging
 from dotenv import load_dotenv
 from langchain_community.chat_message_histories import ChatMessageHistory
-from langchain_core.prompts import ChatPromptTemplate #질문 분류 프롬프트
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.runnables.history import RunnableWithMessageHistory
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO)
@@ -59,24 +60,24 @@ def classify_question(query_text):
 
     # Context
     ## Question Types and Examples
-    1. 양육비 - Questions related to non-payment of child support
-       Example: "양육비를 지급하지 않는 남편에게 어떻게 대처해야 하나요?"
+    1. 무정자증- Questions related to non-payment of child support
+       Example: "남편이 무정자증에다 성염색체에 선천적 이상인데 혼인 취소 할수 있어?"
     2. 폭행 - Assault cases
-       Example: "계속된 폭행 등으로 혼인이 파탄됐어"
+       Example: "반복적으로 폭력을 행사하는데 이혼 청구 할 수 있어?"
     3. 재산분할 - Division of joint property
-       Example: "이혼 시 공동 재산을 어떻게 나눌 수 있나요?"
+       Example: "공무원연금이 이혼 시 재산분할의 대상이 될 수 있어?"
     4. 위자료 - Compensation for mental suffering
-       Example: "숙려기간에 다른 이성과 교제한 남편에게 위자료 청구할 수 있어?"
-    5. 생활비 - Non-payment of living expenses
-       Example: "생활비를 주지 않는데 이혼할 수 있을까요?"
+       Example: "이혼 숙려기간에 다른 이성과 교제한 남편에게 위자료 청구할 수 있어?"
+    5. 출산 경력 - Childbirth experience
+       Example: "출산의 경력을 고지하지 않은게 혼인취소 사유 될 수 있어?"
     6. 성기능 장애 - Marital annulment due to sexual dysfunction
        Example: "성기능 장애로 혼인취소 할 수 있어?"
     7. 혼외자 출산 - Family breakdown due to extramarital childbirth
        Example: "남편이 다른 여성과 혼외자를 출산했어"
     8. 유책배우자 - Divorce claims from at-fault spouse
-       Example: "유책배우자가 이혼청구 할 수 있나요?"
+       Example: "유책배우자가 이혼 청구 할 수 있나요?"
     9. ETC question - Questions not covered by the above categories.
-       Example: "이혼 후 양육권은 어떻게 결정되나요?"
+       Example: "재혼은 어떻게 해?"
     ''')
 
     # 분류 요청 메시지 생성
@@ -129,6 +130,7 @@ def generate_response(query_text, question_type, chat_history, first_interaction
     '''
 
     # 이전 대화기록을 포함한 메시지 생성 (최대 컨텍스트 길이를 초과하지 않도록 제한)
+    # 수정된 부분: get_messages -> messages
     context_messages = chat_history.messages[-max_context_length:] if len(chat_history.messages) > max_context_length else chat_history.messages
     response_messages = [
         {"role": "system", "content": "You are a helpful assistant."}
@@ -155,3 +157,13 @@ def generate_response(query_text, question_type, chat_history, first_interaction
     except Exception as e:
         logger.error(f"OpenAI 응답 생성 중 오류 발생: {e}")
         raise ValueError("OpenAI 응답 생성 중 오류가 발생했습니다.")
+
+# Example usage of RunnableWithMessageHistory
+class MyRunnableWithHistory(RunnableWithMessageHistory):
+    def __init__(self, chat_history):
+        self.chat_history = chat_history
+
+    def run(self, query_text):
+        classified_question = classify_question(query_text)
+        response = generate_response(query_text, classified_question["question_type"], self.chat_history)
+        return response

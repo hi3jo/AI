@@ -7,6 +7,7 @@ import logging
 
 # 로그 설정
 logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 # ChromaDB 클라이언트 초기화
 client = chromadb.PersistentClient(path="./data")
@@ -37,6 +38,9 @@ def get_or_create_collection(client, collection_name):
     
     return collection
 
-# 기존 컬렉션 삭제 및 새로운 컬렉션 생성 또는 가져오기
+# 기존 컬렉션 삭제
 # delete_collection(client, "case-law3")
-collection = get_or_create_collection(client, "case-law3")
+# delete_collection(client, "case-law")
+
+# 새로운 컬렉션 생성
+collection = get_or_create_collection(client, "case-law2")
