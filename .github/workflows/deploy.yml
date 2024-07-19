@@ -58,15 +58,5 @@ jobs:
       # 3000 -> 80 포트로 수행하도록 지정
       - name: Docker run
         run: |
-          #sudo docker stop ${{ env.NAME }} && sudo docker rm ${{ env.NAME }} && sudo docker rmi ${{ env.DOCKER_IMAGE }}:latest
-
-          if sudo docker ps -a --format '{{.Names}}' | grep -Eq "^${{ env.NAME }}\$"; then
-            sudo docker stop ${{ env.NAME }}
-            sudo docker rm ${{ env.NAME }}
-          fi
-  
-          if sudo docker images --format '{{.Repository}}:{{.Tag}}' | grep -Eq "^${{ env.DOCKER_IMAGE }}:latest\$"; then
-            sudo docker rmi ${{ env.DOCKER_IMAGE }}:latest
-          fi
-  
+ 
           sudo docker run -d -p 8000:8000 --name ai --restart always ${{ env.DOCKER_IMAGE }}:latest
