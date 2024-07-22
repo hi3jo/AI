@@ -49,9 +49,9 @@ jobs:
           tags: ${{ env.DOCKER_IMAGE }}:latest
 
   # 배포 Job
-  deploy:
+  deploy-label-ai1:
     needs: build  # build 후에 실행되도록 정의
-    name: Deploy
+    name: Deploy to label-ai
     runs-on: [ self-hosted, label-ai ] # AWS ./configure에서 사용할 label명
     steps:
       - name: Login to ghcr
@@ -64,8 +64,8 @@ jobs:
       # 8000 -> 8000 포트로 수행하도록 지정
       - name: Docker run
         run: |
-          docker stop ${{ env.NAME }} && docker rm ${{ env.NAME }} && docker rmi ${{ env.DOCKER_IMAGE }}:latest
-          sudo docker run -d -p 8000:8000 --name ${{ env.NAME }} --restart always ${{ env.DOCKER_IMAGE }}:latest
+          #docker stop ${{ env.NAME }} && docker rm ${{ env.NAME }} && docker rmi ${{ env.DOCKER_IMAGE }}:latest
+          docker run -d -p 8000:8000 --name ${{ env.NAME }} --restart always ${{ env.DOCKER_IMAGE }}:latest
 
   deploy-label-ai2:
     needs: build  # build 후에 실행되도록 정의
@@ -81,6 +81,6 @@ jobs:
   
       - name: Docker run
         run: |
-          docker stop ${{ env.NAME }} && docker rm ${{ env.NAME }} && docker rmi ${{ env.DOCKER_IMAGE }}:latest
-          sudo docker run -d -p 8000:8000 --name ${{ env.NAME }} --restart always ${{ env.DOCKER_IMAGE }}:latest          
+          #docker stop ${{ env.NAME }} && docker rm ${{ env.NAME }} && docker rmi ${{ env.DOCKER_IMAGE }}:latest
+          docker run -d -p 8000:8000 --name ${{ env.NAME }} --restart always ${{ env.DOCKER_IMAGE }}:latest          
           
