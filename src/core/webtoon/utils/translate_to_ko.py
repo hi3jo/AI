@@ -1,4 +1,4 @@
-from googletrans import Translator
+""" from googletrans import Translator
 
 def translate_ko(prompt):
     
@@ -13,4 +13,4 @@ def translate_ko(prompt):
 
     # 번역 결과 출력
     #print(result.text)
-    return result
+    return result """
