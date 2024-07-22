@@ -6,6 +6,8 @@ from dotenv import load_dotenv
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables.history import RunnableWithMessageHistory
+from src.core.chatbot.chromadb_client import chroma_retriever, get_chroma_client
+from sentence_transformers import SentenceTransformer
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO)
@@ -109,6 +111,43 @@ def classify_question(query_text):
     except Exception as e:
         logger.error(f"OpenAI 질문 분류 응답 생성 중 오류 발생: {e}")
         raise ValueError("질문 분류 중 오류가 발생했습니다.")
+
+# 임베딩 모델 로드 (SentenceTransformer 사용)
+model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
+
+# 질문에 대해 답변을 생성하는 함수
+def get_answer(question):
+    collection = get_chroma_client()
+    docs, metadatas = chroma_retriever(query=question, collection=collection, embeddings=model)
+    if not docs:
+        return {"message": "검색된 문서가 없습니다."}
+    
+    context = "\n\n".join([f"Document {idx+1}: {doc}" for idx, doc in enumerate(docs)])
+    
+    # OpenAI 모델의 최대 컨텍스트 길이를 초과하지 않도록 자릅니다.
+    max_context_length = 4097 - 256  # 최대 토큰 길이에서 여유를 둡니다.
+    if len(context) > max_context_length:
+        context = context[:max_context_length]
+
+    # OpenAI API를 사용하여 답변 생성
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a knowledgeable assistant who provides accurate answers based on the provided context."},
+                {"role": "user", "content": f"Here are some legal documents:\n{context}\nBased on these documents, answer the following question: {question}"}
+            ],
+            max_tokens=150,
+            n=1,
+            stop=None,
+            temperature=0.7
+        )
+        final_response = response.choices[0]['message']['content'].strip()
+    except Exception as e:
+        logger.error(f"OpenAI 응답 생성 중 오류 발생: {e}")
+        return {"message": "응답 생성 중 오류가 발생했습니다."}
+
+    return final_response
 
 # 응답을 생성하는 함수
 def generate_response(query_text, question_type, chat_history, first_interaction=False, similar_docs=None, most_similar_info=None, max_context_length=16385):
