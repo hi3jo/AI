@@ -4,6 +4,10 @@ import json
 import logging
 from dotenv import load_dotenv
 from langchain_community.chat_message_histories import ChatMessageHistory
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.runnables.history import RunnableWithMessageHistory
+from src.core.chatbot.chromadb_client import chroma_retriever, get_chroma_client
+from sentence_transformers import SentenceTransformer
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO)
@@ -24,8 +28,8 @@ chat_history = ChatMessageHistory()
 
 # 질문을 분류하는 함수
 def classify_question(query_text):
-    # 분류 프롬프트 정의
-    classification_prompt = f'''
+    # ChatPromptTemplate를 사용하여 분류 프롬프트 생성
+    prompt_template = ChatPromptTemplate.from_template('''
     # Role
     You are a professional and accurate text classifier machine and translator machine.
 
@@ -58,30 +62,30 @@ def classify_question(query_text):
 
     # Context
     ## Question Types and Examples
-    1. 양육비 - Questions related to non-payment of child support
-       Example: "양육비를 지급하지 않는 남편에게 어떻게 대처해야 하나요?"
+    1. 무정자증- Questions related to non-payment of child support
+       Example: "남편이 무정자증에다 성염색체에 선천적 이상인데 혼인 취소 할수 있어?"
     2. 폭행 - Assault cases
-       Example: "계속된 폭행 등으로 혼인이 파탄됐어"
+       Example: "반복적으로 폭력을 행사하는데 이혼 청구 할 수 있어?"
     3. 재산분할 - Division of joint property
-       Example: "이혼 시 공동 재산을 어떻게 나눌 수 있나요?"
+       Example: "공무원연금이 이혼 시 재산분할의 대상이 될 수 있어?"
     4. 위자료 - Compensation for mental suffering
-       Example: "숙려기간에 다른 이성과 교제한 남편에게 위자료 청구할 수 있어?"
-    5. 생활비 - Non-payment of living expenses
-       Example: "생활비를 주지 않는데 이혼할 수 있을까요?"
+       Example: "이혼 숙려기간에 다른 이성과 교제한 남편에게 위자료 청구할 수 있어?"
+    5. 출산 경력 - Childbirth experience
+       Example: "출산의 경력을 고지하지 않은게 혼인취소 사유 될 수 있어?"
     6. 성기능 장애 - Marital annulment due to sexual dysfunction
        Example: "성기능 장애로 혼인취소 할 수 있어?"
     7. 혼외자 출산 - Family breakdown due to extramarital childbirth
        Example: "남편이 다른 여성과 혼외자를 출산했어"
     8. 유책배우자 - Divorce claims from at-fault spouse
-       Example: "유책배우자가 이혼청구 할 수 있나요?"
+       Example: "유책배우자가 이혼 청구 할 수 있나요?"
     9. ETC question - Questions not covered by the above categories.
-       Example: "이혼 후 양육권은 어떻게 결정되나요?"
-    '''
+       Example: "재혼은 어떻게 해?"
+    ''')
 
     # 분류 요청 메시지 생성
     classification_messages = [
         {"role": "system", "content": "You are a professional and accurate text classifier machine and translator machine."},
-        {"role": "user", "content": classification_prompt}
+        {"role": "user", "content": prompt_template.format(query_text=query_text)}
     ]
 
     try:
@@ -108,6 +112,43 @@ def classify_question(query_text):
         logger.error(f"OpenAI 질문 분류 응답 생성 중 오류 발생: {e}")
         raise ValueError("질문 분류 중 오류가 발생했습니다.")
 
+# 임베딩 모델 로드 (SentenceTransformer 사용)
+model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
+
+# 질문에 대해 답변을 생성하는 함수
+def get_answer(question):
+    collection = get_chroma_client()
+    docs, metadatas = chroma_retriever(query=question, collection=collection, embeddings=model)
+    if not docs:
+        return {"message": "검색된 문서가 없습니다."}
+    
+    context = "\n\n".join([f"Document {idx+1}: {doc}" for idx, doc in enumerate(docs)])
+    
+    # OpenAI 모델의 최대 컨텍스트 길이를 초과하지 않도록 자릅니다.
+    max_context_length = 4097 - 256  # 최대 토큰 길이에서 여유를 둡니다.
+    if len(context) > max_context_length:
+        context = context[:max_context_length]
+
+    # OpenAI API를 사용하여 답변 생성
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a knowledgeable assistant who provides accurate answers based on the provided context."},
+                {"role": "user", "content": f"Here are some legal documents:\n{context}\nBased on these documents, answer the following question: {question}"}
+            ],
+            max_tokens=150,
+            n=1,
+            stop=None,
+            temperature=0.7
+        )
+        final_response = response.choices[0]['message']['content'].strip()
+    except Exception as e:
+        logger.error(f"OpenAI 응답 생성 중 오류 발생: {e}")
+        return {"message": "응답 생성 중 오류가 발생했습니다."}
+
+    return final_response
+
 # 응답을 생성하는 함수
 def generate_response(query_text, question_type, chat_history, first_interaction=False, similar_docs=None, most_similar_info=None, max_context_length=16385):
     # 응답 프롬프트 정의
@@ -116,7 +157,7 @@ def generate_response(query_text, question_type, chat_history, first_interaction
     You are a helpful assistant.
 
     # Task
-    Provide a detailed and informative answer to the following question based on its type:
+    Provide a detailed and informative answer to the following question based on its type. Please provide the response in Korean.
 
     ## Question
     "{query_text}"
@@ -128,6 +169,7 @@ def generate_response(query_text, question_type, chat_history, first_interaction
     '''
 
     # 이전 대화기록을 포함한 메시지 생성 (최대 컨텍스트 길이를 초과하지 않도록 제한)
+    # 수정된 부분: get_messages -> messages
     context_messages = chat_history.messages[-max_context_length:] if len(chat_history.messages) > max_context_length else chat_history.messages
     response_messages = [
         {"role": "system", "content": "You are a helpful assistant."}
@@ -154,3 +196,13 @@ def generate_response(query_text, question_type, chat_history, first_interaction
     except Exception as e:
         logger.error(f"OpenAI 응답 생성 중 오류 발생: {e}")
         raise ValueError("OpenAI 응답 생성 중 오류가 발생했습니다.")
+
+# Example usage of RunnableWithMessageHistory
+class MyRunnableWithHistory(RunnableWithMessageHistory):
+    def __init__(self, chat_history):
+        self.chat_history = chat_history
+
+    def run(self, query_text):
+        classified_question = classify_question(query_text)
+        response = generate_response(query_text, classified_question["question_type"], self.chat_history)
+        return response

@@ -1,8 +1,8 @@
 import warnings
 from fastapi import APIRouter, HTTPException, Query, Depends
 import logging
-from src.core.chatbot.chromadb_client import get_chroma_client, search_similar_documents
-from src.core.chatbot.openai_client import classify_question, generate_response, chat_history
+from src.core.chatbot.chromadb_client import get_chroma_client, search_similar_documents, chroma_retriever
+from src.core.chatbot.openai_client import classify_question, generate_response, chat_history, get_answer
 from src.core.chatbot.utils import truncate_text, format_metadata_response
 
 # 경고 메시지 무시
