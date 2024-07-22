@@ -1,5 +1,4 @@
 import openai
-from src.core.webtoon.utils.translate_to_ko import translate_ko
 
 # 2024.07.10.수 : kyj 작성
 def generate_prompt(i, sep_story, style):
