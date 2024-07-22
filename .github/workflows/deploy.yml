@@ -40,6 +40,10 @@ jobs:
           username: ${{ secrets.GHCR_USERNAME }}
           password: ${{ secrets.GHCR_TOKEN }}
 
+      # .env 파일 생성
+      - name: Create .env file
+        run: echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" > .env
+
       - name: Build and push
         id: docker_build
         uses: docker/build-push-action@v2
