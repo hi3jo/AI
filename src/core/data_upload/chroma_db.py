@@ -39,8 +39,7 @@ def get_or_create_collection(client, collection_name):
     return collection
 
 # 기존 컬렉션 삭제
-# delete_collection(client, "case-law3")
-# delete_collection(client, "case-law")
+# delete_collection(client, "case-law2")
 
 # 새로운 컬렉션 생성
 collection = get_or_create_collection(client, "case-law2")
