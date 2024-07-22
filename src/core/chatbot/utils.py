@@ -12,6 +12,13 @@ def truncate_text(text, max_tokens):
     if len(tokens) > max_tokens:
         return " ".join(tokens[:max_tokens])
     return text
+# def truncate_text(text, max_tokens):
+#     if isinstance(text, list):
+#         text = ' '.join(text)
+#     tokens = text.split()
+#     if len(tokens) <= max_tokens:
+#         return text
+#     return ' '.join(tokens[:max_tokens])
 
 # 메타데이터 포맷팅 함수
 def format_metadata_response(metadata_list):
