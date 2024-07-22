@@ -51,7 +51,7 @@ jobs:
   # 배포 Job
   deploy-label-ai1:
     needs: build  # build 후에 실행되도록 정의
-    name: Deploy to label-ai
+    name: Deploy to label-ai1
     runs-on: [ self-hosted, label-ai ] # AWS ./configure에서 사용할 label명
     steps:
       - name: Login to ghcr
