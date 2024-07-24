@@ -3,7 +3,7 @@ import os
 import json
 import logging
 from dotenv import load_dotenv
-from src.core.image.pro_ocr import preprocess_text, preprocess_image_with_color_mask, remove_hand_region, extract_text_regions, extract_relevant_text, is_relevant_text, is_excluded_text
+# from src.core.image.pro_ocr import preprocess_text, preprocess_image_with_color_mask, remove_hand_region, extract_text_regions, extract_relevant_text, is_relevant_text, is_excluded_text
 
 logger = logging.getLogger(__name__)
 
