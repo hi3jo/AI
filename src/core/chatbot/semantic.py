@@ -1,4 +1,4 @@
-import openai
+from openai import OpenAI
 import pandas as pd
 from langchain_experimental.text_splitter import SemanticChunker
 from langchain_openai.embeddings import OpenAIEmbeddings
@@ -9,7 +9,9 @@ import os
 load_dotenv()
 
 # OpenAI API 키 설정
-openai.api_key = os.getenv('OPENAI_API_KEY')
+client = OpenAI(
+    api_key=os.getenv('OPENAI_API_KEY')
+)
 
 def process_kdrama_data(csv_path):
     # CSV 파일을 읽어옵니다.
@@ -52,7 +54,7 @@ def process_kdrama_data(csv_path):
 
 def ask_openai(question):
     try:
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-3.5-turbo",  # 사용할 모델 지정
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
@@ -63,7 +65,7 @@ def ask_openai(question):
             stop=None,
             temperature=0.7
         )
-        answer = response['choices'][0]['message']['content']
+        answer = response.choices[0].message.content.strip()
         return answer
     except Exception as e:
         return f"Error: {str(e)}"
