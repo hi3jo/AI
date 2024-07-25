@@ -34,8 +34,12 @@ def  make_korean_balloons(image_cut, speech):
     x = (image.width - text_width) / 2
     y = image.height - text_height - 20  # 하단에서 텍스트 높이만큼 위로 이동
 
+    # 알파 채널 값 계산 (0 ~ 255)
+    alpha_value = int(255 * (50 / 100))
+
     # Create a semi-transparent rectangle
-    rectangle_image = Image.new('RGBA', (text_width + 20, text_height + 20), (255, 255, 255, 25))  # 10% 불투명도
+    #rectangle_image = Image.new('RGBA', (text_width + 20, text_height + 20), (255, 255, 255, 25))  # 10% 불투명도
+    rectangle_image = Image.new('RGBA', (text_width + 20, text_height + 20), alpha_value)  # 10% 불투명도
     image.paste(rectangle_image, (int(x - 10), int(y - 10)), rectangle_image)
 
     # Draw the text
