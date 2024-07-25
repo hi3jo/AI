@@ -1,7 +1,7 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from fastapi.responses import JSONResponse
 from src.core.image.nlp_analysis import classify_text
-from src.core.image.pro_ocr import perform_ocr
+# from src.core.image.pro_ocr import perform_ocr
 from typing import List
 
 def split_text(text: str, max_tokens: int = 1500) -> List[str]:

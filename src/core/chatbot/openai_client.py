@@ -6,7 +6,8 @@ from dotenv import load_dotenv
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables.history import RunnableWithMessageHistory
-from src.core.chatbot.chromadb_client import chroma_retriever, get_chroma_client, split_text_semantically
+from src.core.chatbot.chromadb_client import chroma_retriever, get_chroma_client
+from sentence_transformers import SentenceTransformer
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO)
@@ -16,17 +17,33 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 
 # OpenAI API 키 설정
-openai.api_key = os.getenv('OPENAI_API_KEY')
+api_key = os.getenv('OPENAI_API_KEY')
+logger.info(f"Loaded API key: {api_key}")
+
+openai.api_key = api_key
 
 # API 키가 제대로 로드되었는지 확인
 if not openai.api_key:
     raise ValueError("OpenAI API 키가 설정되지 않았습니다.")
+else:
+    logger.info("OpenAI API 키가 설정되었습니다.")
+
+# API 타입 및 버전 설정
+# api_type = os.getenv('OPENAI_API_TYPE', 'openai')
+# api_version = os.getenv('OPENAI_API_VERSION', 'v1')
+
+# 현재 OpenAI 라이브러리 버전 출력
+current_openai_version = openai.__version__
+logger.info(f"Current OpenAI version: {current_openai_version}")
+# logger.info(f"API Type: {api_type}")
+# logger.info(f"API Version: {api_version}")
 
 # 대화기록 저장을 위한 ChatMessageHistory 초기화
 chat_history = ChatMessageHistory()
 
 # 질문을 분류하는 함수
 def classify_question(query_text):
+    # ChatPromptTemplate를 사용하여 분류 프롬프트 생성
     prompt_template = ChatPromptTemplate.from_template('''
     # Role
     You are a professional and accurate text classifier machine and translator machine.
@@ -80,22 +97,26 @@ def classify_question(query_text):
        Example: "재혼은 어떻게 해?"
     ''')
 
-    classification_prompt = prompt_template.format(query_text=query_text)
+    # 분류 요청 메시지 생성
+    classification_messages = [
+        {"role": "system", "content": "You are a professional and accurate text classifier machine and translator machine."},
+        {"role": "user", "content": prompt_template.format(query_text=query_text)}
+    ]
 
     try:
+        # OpenAI의 ChatCompletion API를 사용하여 질문 분류 요청
         classification_response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are a professional and accurate text classifier machine and translator machine."},
-                {"role": "user", "content": classification_prompt}
-            ],
+            messages=classification_messages,
             max_tokens=500
         )
         logger.info(f"OpenAI 질문 분류 응답 생성 완료: {classification_response}")
-
+        
+        # 응답 내용 추출 및 로그에 기록
         classified_question_content = classification_response['choices'][0]['message']['content']
         logger.info(f"응답 내용: {classified_question_content}")
 
+        # 불필요한 문자를 제거하고 JSON 형식으로 변환
         classified_question_content = classified_question_content.replace('```json', '').replace('```', '').strip()
         classified_question = json.loads(classified_question_content)
         return classified_question
@@ -104,45 +125,52 @@ def classify_question(query_text):
         raise ValueError("질문 분류 중 JSON 디코딩 오류가 발생했습니다.")
     except Exception as e:
         logger.error(f"OpenAI 질문 분류 응답 생성 중 오류 발생: {e}")
+        if "ChatCompletion" not in dir(openai):
+            logger.error(f"현재 OpenAI 라이브러리 버전({current_openai_version})에서는 ChatCompletion이 지원되지 않습니다.")
         raise ValueError("질문 분류 중 오류가 발생했습니다.")
 
+# 임베딩 모델 로드 (SentenceTransformer 사용)
+model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
+
 # 질문에 대해 답변을 생성하는 함수
-# 리드리버 적용 retriever
 def get_answer(question):
     collection = get_chroma_client()
+    docs, metadatas = chroma_retriever(query=question, collection=collection, embeddings=model)
+    if not docs:
+        return {"message": "검색된 문서가 없습니다."}
+    
+    context = "\n\n".join([f"Document {idx+1}: {doc}" for idx, doc in enumerate(docs)])
+    
+    # OpenAI 모델의 최대 컨텍스트 길이를 초과하지 않도록 자릅니다.
+    max_context_length = 4097 - 256  # 최대 토큰 길이에서 여유를 둡니다.
+    if len(context) > max_context_length:
+        context = context[:max_context_length]
+
+    # OpenAI API를 사용하여 답변 생성
     try:
-        docs, metadatas = chroma_retriever(query=question, collection=collection)
-        if not docs:
-            logger.info("검색된 문서가 없습니다.")
-            return {"message": "검색된 문서가 없습니다."}
-
-        context = "\n\n".join([f"Document {idx+1}: {doc}" for idx, doc in enumerate(docs)])
-        chunks = split_text_semantically(context)
-
-        max_context_length = 4097 - 256
-        if len(chunks) > max_context_length:
-            chunks = chunks[:max_context_length]
-
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": f"Here are some legal documents:\n{chunks}\nBased on these documents, answer the following question: {question}"}
+                {"role": "system", "content": "You are a knowledgeable assistant who provides accurate answers based on the provided context."},
+                {"role": "user", "content": f"Here are some legal documents:\n{context}\nBased on these documents, answer the following question: {question}"}
             ],
             max_tokens=150,
             n=1,
             stop=None,
             temperature=0.7
         )
-        final_response = response.choices[0].message['content'].strip()
-        logger.info(f"OpenAI 응답 생성 완료: {final_response}")
-        return final_response
+        final_response = response['choices'][0]['message']['content'].strip()
     except Exception as e:
         logger.error(f"OpenAI 응답 생성 중 오류 발생: {e}")
+        if "ChatCompletion" not in dir(openai):
+            logger.error(f"현재 OpenAI 라이브러리 버전({current_openai_version})에서는 ChatCompletion이 지원되지 않습니다.")
         return {"message": "응답 생성 중 오류가 발생했습니다."}
+
+    return final_response
 
 # 응답을 생성하는 함수
 def generate_response(query_text, question_type, chat_history, first_interaction=False, similar_docs=None, most_similar_info=None, max_context_length=16385):
+    # 응답 프롬프트 정의
     response_prompt = f'''
     # Role
     You are a helpful assistant.
@@ -159,30 +187,40 @@ def generate_response(query_text, question_type, chat_history, first_interaction
     # Response
     '''
 
+    # 이전 대화기록을 포함한 메시지 생성 (최대 컨텍스트 길이를 초과하지 않도록 제한)
     context_messages = chat_history.messages[-max_context_length:] if len(chat_history.messages) > max_context_length else chat_history.messages
-    response_prompt += "\n\n" + "\n\n".join([f"{msg['role']}: {msg['content']}" for msg in context_messages])
+    response_messages = [
+        {"role": "system", "content": "You are a helpful assistant."}
+    ] + context_messages + [
+        {"role": "user", "content": response_prompt}
+    ]
 
     try:
+        # OpenAI의 ChatCompletion API를 사용하여 응답 생성 요청
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": response_prompt}
-            ],
+            messages=response_messages,
             max_tokens=500
         )
         logger.info(f"OpenAI 응답 생성 완료: {response}")
         final_response = response['choices'][0]['message']['content']
 
+        # 성공 로그 추가
+        logger.info(f"Response generated successfully: {final_response}")
+        
+        # 첫 번째 인터랙션일 경우 추가 정보 저장
         if first_interaction and similar_docs and most_similar_info:
             chat_history.add_message({"role": "system", "content": f"Results: {similar_docs}"})
             chat_history.add_message({"role": "system", "content": f"Most similar info: {most_similar_info}"})
-
+        
         return final_response
     except Exception as e:
         logger.error(f"OpenAI 응답 생성 중 오류 발생: {e}")
+        if "ChatCompletion" not in dir(openai):
+            logger.error(f"현재 OpenAI 라이브러리 버전({current_openai_version})에서는 ChatCompletion이 지원되지 않습니다.")
         raise ValueError("OpenAI 응답 생성 중 오류가 발생했습니다.")
 
+# Example usage of RunnableWithMessageHistory
 class MyRunnableWithHistory(RunnableWithMessageHistory):
     def __init__(self, chat_history):
         self.chat_history = chat_history
