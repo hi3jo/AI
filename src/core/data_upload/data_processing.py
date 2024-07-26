@@ -5,8 +5,18 @@ import logging
 import pandas as pd
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_experimental.text_splitter import SemanticChunker
-from langchain_community.embeddings.sentence_transformer import SentenceTransformerEmbeddings
+from langchain_openai.embeddings import OpenAIEmbeddings
 from langchain.schema import Document
+from dotenv import load_dotenv
+import os
+
+# .env 파일의 환경 변수를 로드합니다.
+load_dotenv()
+
+# OpenAI API 키 설정
+api_key = os.getenv('OPENAI_API_KEY')
+if api_key is None:
+    raise ValueError("OPENAI_API_KEY가 설정되지 않았습니다.")
 
 # 로그 설정
 logger = logging.getLogger(__name__)
@@ -59,7 +69,7 @@ def get_text_chunks(documents):
         logger.debug("결합된 텍스트 생성 완료")
 
         # 의미론적 청크 분할
-        semantic_splitter = SemanticChunker(SentenceTransformerEmbeddings(model_name='paraphrase-MiniLM-L6-v2'))
+        semantic_splitter = SemanticChunker(OpenAIEmbeddings(openai_api_key=api_key))
         semantic_chunks = semantic_splitter.split_text(full_text)
         logger.info(f"의미론적 청크 분할 완료, 청크 수: {len(semantic_chunks)}")
 
