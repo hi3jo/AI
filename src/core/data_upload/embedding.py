@@ -1,4 +1,4 @@
-from langchain_openai.embeddings import OpenAIEmbeddings
+from langchain_huggingface.embeddings import HuggingFaceEmbeddings
 from langchain_experimental.text_splitter import SemanticChunker
 import logging
 from .chroma_db import delete_collection, create_collection
@@ -13,16 +13,14 @@ logging.basicConfig(level=logging.INFO)
 # .env 파일의 환경 변수를 로드합니다.
 load_dotenv()
 
-# OpenAI API 키 설정
-api_key = os.getenv('OPENAI_API_KEY')
-if api_key is None:
-    raise ValueError("OPENAI_API_KEY가 설정되지 않았습니다.")
+# HuggingFace 모델 이름 설정
+model_name = "sentence-transformers/paraphrase-MiniLM-L6-v2"
 
-# 임베딩 모델 로드 (OpenAIEmbeddings 사용)
-embedding_model = OpenAIEmbeddings(openai_api_key=api_key)
+# 임베딩 모델 로드 (HuggingFaceEmbeddings 사용)
+embedding_model = HuggingFaceEmbeddings(model_name=model_name)
 
 # 특정 컬렉션 삭제 및 새로운 컬렉션 생성
-delete_collection("case-law2")
+# delete_collection("case-law2")
 
 # 디버깅 로그 추가: create_collection 호출 전
 logger.info(f"create_collection 호출 전: embedding_model={embedding_model}")
@@ -37,7 +35,7 @@ def embed_and_store_documents(docs):
     texts = [doc.page_content for doc in chunked_docs]
     metadatas = [doc.metadata for doc in chunked_docs]
 
-    # OpenAI 임베딩을 사용하여 의미론적 청크 분할기를 초기화합니다.
+    # HuggingFace 임베딩을 사용하여 의미론적 청크 분할기를 초기화합니다.
     text_splitter = SemanticChunker(embedding_model)
 
     # 텍스트를 의미론적으로 관련된 청크로 분할합니다.
