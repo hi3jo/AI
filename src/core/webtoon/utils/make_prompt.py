@@ -1,4 +1,9 @@
-import openai
+from openai import OpenAI
+import os
+
+api_key = os.getenv('OPENAI_API_KEY')
+
+client = OpenAI(api_key=api_key)
 
 # 2024.07.10.수 : kyj 작성
 def generate_prompt(i, sep_story, style):
@@ -11,7 +16,7 @@ def generate_prompt(i, sep_story, style):
     gpt_model = "gpt-4"
     
     # 1.ChatGPT를 사용하여 prompt 생성
-    response = openai.ChatCompletion.create(
+    response = client.chat.completions.create(
           model=gpt_model
         , messages=[
              {"role": "system",    "content": "You are an assistant that creates detailed prompts for generating images."}
@@ -20,7 +25,7 @@ def generate_prompt(i, sep_story, style):
         ]
     )
     
-    prompt = response['choices'][0]['message']['content']
+    prompt = response.choices[0].message.content
     
     print()
     print(f"2) 영문 prompt 출력 : \n {prompt} \n\n")
@@ -29,14 +34,14 @@ def generate_prompt(i, sep_story, style):
     #trs_prpt = translate_ko(prompt)
     
     # 2.응답에서 사용된 토큰 수 정보 추출 (예시)
-    usage = response['usage']                                   
-    total_tokens = usage['total_tokens'] 
-    total_input_tokens = usage['prompt_tokens']
-    total_output_tokens = usage['completion_tokens']          
-    cost = calc_cost(total_input_tokens, total_output_tokens, gpt_model)
+    #usage = response['usage']                                   
+    #total_tokens = usage['total_tokens'] 
+    #total_input_tokens = usage['prompt_tokens']
+    #total_output_tokens = usage['completion_tokens']          
+    #cost = calc_cost(total_input_tokens, total_output_tokens, gpt_model)
     
-    print(f"3) 총 사용된 토큰 수: {total_tokens}, 비용: ${cost:.4f} \n")
-    print("--------------------------------------------------------------------------------------------------------------------------------------------------")
+    #print(f"3) 총 사용된 토큰 수: {total_tokens}, 비용: ${cost:.4f} \n")
+    #print("--------------------------------------------------------------------------------------------------------------------------------------------------")
     return prompt
 
 # prompt에 따른 대략적인 비용 계산
