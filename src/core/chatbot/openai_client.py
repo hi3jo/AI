@@ -1,8 +1,8 @@
-from openai import OpenAI
 import os
 import json
 import logging
 from dotenv import load_dotenv
+from openai import OpenAI
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables.history import RunnableWithMessageHistory
@@ -13,7 +13,7 @@ from sentence_transformers import SentenceTransformer
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# .env 파일의 환경 변수를 로드합니다.
+# .env 파일의 환경 변수를 로드
 load_dotenv()
 
 # OpenAI API 키 설정
@@ -26,10 +26,6 @@ if not client.api_key:
     raise ValueError("OpenAI API 키가 설정되지 않았습니다.")
 else:
     logger.info("OpenAI API 키가 설정되었습니다.")
-
-# 현재 OpenAI 라이브러리 버전 출력
-# current_openai_version = client.__version__
-# logger.info(f"Current OpenAI version: {current_openai_version}")
 
 # 대화기록 저장을 위한 ChatMessageHistory 초기화
 chat_history = ChatMessageHistory()
@@ -106,7 +102,7 @@ def classify_question(query_text):
         logger.info(f"OpenAI 질문 분류 응답 생성 완료: {classification_response}")
         
         # 응답 내용 추출 및 로그에 기록
-        classified_question_content = classification_response['choices'][0]['message']['content']
+        classified_question_content = classification_response.choices[0].message.content
         logger.info(f"응답 내용: {classified_question_content}")
 
         # 불필요한 문자를 제거하고 JSON 형식으로 변환
@@ -118,9 +114,7 @@ def classify_question(query_text):
         raise ValueError("질문 분류 중 JSON 디코딩 오류가 발생했습니다.")
     except Exception as e:
         logger.error(f"OpenAI 질문 분류 응답 생성 중 오류 발생: {e}")
-        # if "ChatCompletion" not in dir(client):
-        #     logger.error(f"현재 OpenAI 라이브러리 버전({current_openai_version})에서는 ChatCompletion이 지원되지 않습니다.")
-        # raise ValueError("질문 분류 중 오류가 발생했습니다.")
+        raise ValueError("질문 분류 중 오류가 발생했습니다.")
 
 # 임베딩 모델 로드 (SentenceTransformer 사용)
 model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
@@ -152,12 +146,10 @@ def get_answer(question):
             stop=None,
             temperature=0.7
         )
-        final_response = response['choices'][0]['message']['content'].strip()
+        final_response = response.choices[0].message.content.strip()
     except Exception as e:
         logger.error(f"OpenAI 응답 생성 중 오류 발생: {e}")
-        # if "ChatCompletion" not in dir(client):
-        #     logger.error(f"현재 OpenAI 라이브러리 버전({current_openai_version})에서는 ChatCompletion이 지원되지 않습니다.")
-        # return {"message": "응답 생성 중 오류가 발생했습니다."}
+        return {"message": "응답 생성 중 오류가 발생했습니다."}
 
     return final_response
 
@@ -196,7 +188,7 @@ def generate_response(query_text, question_type, chat_history, first_interaction
             max_tokens=500
         )
         logger.info(f"OpenAI 응답 생성 완료: {response}")
-        final_response = response['choices'][0]['message']['content']
+        final_response = response.choices[0].message.content.strip()
 
         # 성공 로그 추가
         logger.info(f"Response generated successfully: {final_response}")
