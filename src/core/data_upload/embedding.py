@@ -1,17 +1,30 @@
-# 4 임베딩 및 저장 모듈
-# 이 모듈은 텍스트 임베딩을 생성하고, 벡터 데이터베이스에 저장하는 기능을 제공합
-# 임베딩 모델을 사용해 텍스트를 벡터로 변환하고 ChromaDB에 저장
-
-from sentence_transformers import SentenceTransformer
+from langchain_huggingface.embeddings import HuggingFaceEmbeddings
+from langchain_experimental.text_splitter import SemanticChunker
 import logging
-from .chroma_db import collection
+from .chroma_db import delete_collection, create_collection
 from .data_processing import get_text_chunks
+from dotenv import load_dotenv
+import os
 
 # 로그 설정
 logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
-# 임베딩 모델 로드 (SentenceTransformer 사용)
-model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
+# .env 파일의 환경 변수를 로드합니다.
+load_dotenv()
+
+# HuggingFace 모델 이름 설정
+model_name = "sentence-transformers/paraphrase-MiniLM-L6-v2"
+
+# 임베딩 모델 로드 (HuggingFaceEmbeddings 사용)
+embedding_model = HuggingFaceEmbeddings(model_name=model_name)
+
+# 특정 컬렉션 삭제 및 새로운 컬렉션 생성
+# delete_collection("case-law2")
+
+# 디버깅 로그 추가: create_collection 호출 전
+logger.info(f"create_collection 호출 전: embedding_model={embedding_model}")
+collection = create_collection("case-law2", embedding_model)
 
 # 텍스트 임베딩 생성 및 벡터 데이터베이스에 저장 함수 정의
 def embed_and_store_documents(docs):
@@ -22,26 +35,26 @@ def embed_and_store_documents(docs):
     texts = [doc.page_content for doc in chunked_docs]
     metadatas = [doc.metadata for doc in chunked_docs]
 
-    # 텍스트 임베딩 생성
-    logger.info("임베딩 모델 함수 호출 시작...")
+    # HuggingFace 임베딩을 사용하여 의미론적 청크 분할기를 초기화합니다.
+    text_splitter = SemanticChunker(embedding_model)
+
+    # 텍스트를 의미론적으로 관련된 청크로 분할합니다.
+    logger.info("텍스트 의미론적 청크 분할 시작...")
     try:
-        embeddings = model.encode(texts, convert_to_tensor=False)
-        if embeddings is None or len(embeddings) == 0:
-            raise ValueError("임베딩 생성 실패")
-        logger.info(f"임베딩 모델 함수 호출 완료, 생성된 임베딩 수: {len(embeddings)}")
+        chunks = text_splitter.split_text(" ".join(texts))
+        logger.info(f"텍스트 의미론적 청크 분할 완료, 생성된 청크 수: {len(chunks)}")
     except Exception as e:
-        logger.error(f"임베딩 모델 함수 호출 실패: {e}")
-        return {"message": "임베딩 생성 실패"}
+        logger.error(f"텍스트 의미론적 청크 분할 실패: {e}")
+        return {"message": "텍스트 의미론적 청크 분할 실패"}
 
     # Chroma 벡터 데이터베이스에 문서 추가
     try:
         logger.info("벡터 DB 저장중입니다...")
-        ids = [f"case-{i}" for i in range(len(texts))]
-        collection.add(
-            embeddings=embeddings,
-            ids=ids,
-            documents=texts,
-            metadatas=metadatas
+        ids = [f"case-{i}" for i in range(len(chunks))]
+        collection.add_texts(
+            texts=chunks,
+            metadatas=metadatas,
+            ids=ids
         )
         logger.info("벡터 데이터베이스에 저장 성공")
     except Exception as e:
