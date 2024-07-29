@@ -7,7 +7,7 @@ from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from src.core.chatbot.chromadb_client import chroma_retriever, get_chroma_client
-from sentence_transformers import SentenceTransformer
+from src.core.chatbot.embeddings import ko_embedding  # 임베딩 모델을 임포트합니다
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO)
@@ -116,13 +116,10 @@ def classify_question(query_text):
         logger.error(f"OpenAI 질문 분류 응답 생성 중 오류 발생: {e}")
         raise ValueError("질문 분류 중 오류가 발생했습니다.")
 
-# 임베딩 모델 로드 (SentenceTransformer 사용)
-model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
-
 # 질문에 대해 답변을 생성하는 함수
 def get_answer(question):
     collection = get_chroma_client()
-    docs, metadatas = chroma_retriever(query=question, collection=collection, embeddings=model)
+    docs, metadatas = chroma_retriever(query=question, collection=collection, embeddings=ko_embedding)
     if not docs:
         return {"message": "검색된 문서가 없습니다."}
     
