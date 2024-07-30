@@ -1,4 +1,5 @@
 import openai
+import os
 from PIL import Image as PILImage
 import requests
 from io import BytesIO
@@ -12,6 +13,9 @@ from src.core.webtoon.utils.hug_sum import sum
 from src.core.webtoon.utils.make_prompt import generate_prompt
 from src.core.webtoon.utils.summarize_story import summarize_story
 import time
+
+api_key = os.getenv('OPENAI_API_KEY')
+openai.api_key = api_key
 
 def generate_webtoon(content):
 
@@ -36,15 +40,19 @@ def generate_webtoon(content):
             #user_request = f"{text} \n {style_prompt}"
             prompt = generate_prompt(no, text, style_prompt)
             
-            # OpenAI API로 전달할 데이터
-            response = openai.Image.create(
-                  model="dall-e-3"                        # 사용할 이미지 모델명
-                , prompt=prompt
+            model = "dall-e-3"
+            
+            # 기존 버전에서의 호출 방식 : OpenAI API로 전달할 데이터
+            """ response = openai.Image.create(
+                  prompt=prompt
                 , size="1024x1024"
                 , n=1
-            )
+            ) """
+            
+            # 변경 된 호출방식
+            response = openai.images.generate(prompt=prompt, model=model)
                 
-            image_url = response['data'][0]['url']
+            image_url = response.data[0].url  # data 속성에 직접 접근
                 
             # 이미지 다운로드 및 처리
             response = requests.get(image_url)
