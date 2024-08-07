@@ -1,9 +1,11 @@
+from dotenv import load_dotenv
 from openai import OpenAI
 import os
 
-api_key = os.getenv('OPENAI_API_KEY')
-
-client = OpenAI(api_key=api_key)
+# OpenAI API 키 설정
+client = OpenAI(
+    api_key=os.getenv('OPENAI_API_KEY')
+)
 
 # 2024.07.10.수 : kyj 작성
 def generate_prompt(i, sep_story, style):
