@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-from openai
+import openai
 import os
 from PIL import Image as PILImage
 import requests
