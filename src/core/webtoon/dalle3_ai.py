@@ -1,3 +1,4 @@
+from dotenv import load_dotenv
 import openai
 import os
 from PIL import Image as PILImage
@@ -14,7 +15,13 @@ from src.core.webtoon.utils.make_prompt import generate_prompt
 from src.core.webtoon.utils.summarize_story import summarize_story
 import time
 
+# .env 파일 로드
+load_dotenv()
+
+# OpenAI API 키 설정
 api_key = os.getenv('OPENAI_API_KEY')
+if not api_key:
+    raise ValueError("API 키가 설정되지 않았습니다. .env 파일을 확인하세요.")
 openai.api_key = api_key
 
 def generate_webtoon(content):
