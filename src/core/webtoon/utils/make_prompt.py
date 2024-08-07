@@ -1,4 +1,5 @@
 from dotenv import load_dotenv
+from openai import OpenAI
 import os
 
 # .env 파일 로드
