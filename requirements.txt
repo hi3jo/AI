@@ -49,6 +49,8 @@ GitPython==3.1.43
 google-auth==2.30.0
 google-trans-new==1.1.9
 googleapis-common-protos==1.63.2
+googletrans==3.1.0a0
+#googletrans==4.0.0rc1
 greenlet==3.0.3
 grpcio==1.64.1
 h11==0.14.0
