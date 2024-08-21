@@ -28,6 +28,10 @@ app.include_router(text_image_analysis_router, prefix="/api")  # 텍스트 이�
 async def root():
     return {"message": "Ai server start..."}
 
+# if __name__ == '__main__':
+#     import uvicorn
+#     uvicorn.run(app, host='0.0.0.0', port=8000) #http://0.0.0.0:8000
+# 
 if __name__ == '__main__':
     import uvicorn
-    uvicorn.run(app, host='0.0.0.0', port=8000)
+    uvicorn.run(app, host='127.0.0.1', port=8000)
