@@ -10,6 +10,7 @@ from langchain_experimental.text_splitter import SemanticChunker
 from langchain_huggingface.embeddings import HuggingFaceEmbeddings
 from langchain.schema import Document
 from dotenv import load_dotenv
+from PyPDF2 import PdfReader
 
 # .env 파일의 환경 변수를 로드합니다.
 load_dotenv()
@@ -25,6 +26,29 @@ logging.basicConfig(level=logging.INFO)
 def tiktoken_len(text):
     return len(text)
 
+
+# PDF 파일을 로드하여 텍스트를 추출하고 청크를 생성하는 함수
+def load_pdf(file_path):
+    try:
+        logger.info(f"PDF 파일 로드 시작: {file_path}")
+        reader = PdfReader(file_path)
+        docs = []
+        for i, page in enumerate(reader.pages):
+            # 각 페이지의 텍스트를 추출
+            text = page.extract_text()
+            if text:
+                # Document 객체에 페이지 텍스트와 메타데이터 저장
+                metadata = {"page_number": i + 1}
+                docs.append(Document(page_content=text, metadata=metadata))
+                logger.debug(f"문서 생성: 페이지 번호 {i + 1}")
+        logger.info("파일 로드 성공")
+
+        # 텍스트를 로드한 후 청크로 분할하여 반환
+        return get_text_chunks(docs)
+    except Exception as e:
+        logger.error(f"파일 로드 실패: {e}")
+        return None
+    
 # CSV 파일 로드 및 텍스트 청크 생성 함수 정의
 def load_csv(file_path):
     try:
@@ -167,7 +191,7 @@ def get_text_chunks(documents):
         logger.info(f"의미론적 청크 분할 완료, 청크 수: {len(semantic_chunks)}")
 
         logger.info("텍스트 청크 처리 성공")
-        
+        print(semantic_chunks) # semantic_chunks 결과 확인 
         return semantic_chunks  # 최종적으로 의미론적으로 작은 청크를 반환
     
     # 분할 과정에서 발생할 수 있는 예외 처리
