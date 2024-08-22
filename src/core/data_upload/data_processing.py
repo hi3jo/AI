@@ -50,6 +50,30 @@ def load_pdf(file_path):
         return None
     
 # CSV 파일 로드 및 텍스트 청크 생성 함수 정의
+# def load_csv(file_path):
+#     try:
+#         logger.info(f"CSV 파일 로드 시작: {file_path}")
+#         # 잘못된 행 건너뛰기
+#         df = pd.read_csv(file_path, on_bad_lines='skip')
+#         docs = []
+#         for index, row in df.iterrows():
+#             # 판례내용과 메타데이터 저장
+#             text = row['판례내용']
+#             metadata = {
+#                 "판례일련번호": row["판례일련번호"],
+#                 "사건명": row.get("사건명", "없음"),
+#                 "사건번호": row.get("사건번호", "없음"),
+#                 "법원명": row.get("법원명", "없음"),
+#                 "판결요지": row.get("판결요지", "없음")
+#             }
+#             docs.append(Document(page_content=text, metadata=metadata))
+#             logger.debug(f"문서 생성: {index}, 판례일련번호: {row['판례일련번호']}")
+#         logger.info("파일 로드 성공")
+#         return docs
+#     except Exception as e:
+#         logger.error(f"파일 로드 실패: {e}")
+#         return None
+    
 def load_csv(file_path):
     try:
         logger.info(f"CSV 파일 로드 시작: {file_path}")
@@ -58,21 +82,19 @@ def load_csv(file_path):
         docs = []
         for index, row in df.iterrows():
             # 판례내용과 메타데이터 저장
-            text = row['판례내용']
+            text = row['법내용']
             metadata = {
-                "판례일련번호": row["판례일련번호"],
-                "사건명": row.get("사건명", "없음"),
-                "사건번호": row.get("사건번호", "없음"),
-                "법원명": row.get("법원명", "없음"),
-                "판결요지": row.get("판결요지", "없음")
+                "장": row["장"],
+                "조": row.get("조", "없음"),
             }
             docs.append(Document(page_content=text, metadata=metadata))
-            logger.debug(f"문서 생성: {index}, 판례일련번호: {row['판례일련번호']}")
+            logger.debug(f"문서 생성: {index}, 조: {row['조']}")
         logger.info("파일 로드 성공")
         return docs
     except Exception as e:
         logger.error(f"파일 로드 실패: {e}")
         return None
+    
 
 # SemanticChunkerWithMaxChunkLength 클래스 정의
 class SemanticChunkerWithMaxChunkLength(SemanticChunker):
@@ -199,4 +221,3 @@ def get_text_chunks(documents):
         # 에러 발생 시 로그 메시지 출력 (에러 메시지 포함)
         logger.error(f"텍스트 청크 처리 실패: {e}")
         return None
-
