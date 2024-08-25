@@ -39,7 +39,12 @@ def log_system_resources():
     logger.info(f"CPU Usage: {cpu_usage}%")  # CPU 사용량 기록
 
 # 텍스트 임베딩을 생성하고 벡터 데이터베이스에 저장하는 함수
-def embed_and_store_documents(docs, batch_size=2):
+# batch_size 데이터를 처리할 때 한 번에 처리되는 데이터의 단위 크기
+# size를 작게 설정하면 한 번에 처리되는 데이터의 양이 줄어들어 메모리 사용량을 줄일 수 있음
+# 10 메모리 부담이 적고, 안정적인 처리
+# 20 모리와 처리 속도 간의 균형을 잡을 수 있는 설정 : 시스템에 큰 부담을 주지 않는 설정
+# 50 더 빠른 처리가 가능하지만 메모리 사용량이 늘어남 : 시스템에 여유가 있거나 더 빠른 처리가 필요하다면
+def embed_and_store_documents(docs, batch_size=20):
     try:
         # 문서 텍스트를 청크 단위로 나눕니다.
         chunked_docs = get_text_chunks(docs)
@@ -47,8 +52,12 @@ def embed_and_store_documents(docs, batch_size=2):
             raise ValueError("텍스트 청크 처리 실패")
 
         # 각 청크에서 텍스트와 메타데이터를 추출
-        texts = [doc.page_content for doc in chunked_docs]
-        metadatas = [doc.metadata for doc in chunked_docs]
+        # texts 현재 처리 중인 텍스트 청크들
+        # 청크들이 벡터 데이터베이스에 저장될 준비가 되었다는 것을 나타냄
+        texts = [doc.page_content for doc in chunked_docs] 
+        # metadatas 텍스트 청크들에 연결된 메타데이터
+        # 텍스트에 대한 부가 정보를 추적함
+        metadatas = [doc.metadata for doc in chunked_docs] 
 
         # 텍스트, 메타데이터, ID 개수 확인을 위한 로그
         logger.info(f"텍스트 개수: {len(texts)}, 메타데이터 개수: {len(metadatas)}, ID 개수: {len(chunked_docs)}")

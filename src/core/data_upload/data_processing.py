@@ -193,7 +193,12 @@ def get_text_chunks(documents):
         # 의미론적 청크 분할 (SemanticChunkerWithMaxChunkLength 사용)
         semantic_splitter = SemanticChunkerWithMaxChunkLength(
             embeddings=HuggingFaceEmbeddings(model_name=model_name),
-            max_chunk_length=1500,  # 실제 적용 값, 최대 청크 길이 설정
+            # 1500으로 한 이유 
+            # 긴 문장을 포함하는 법률 문서는 논리적인 흐름이 중요한데,
+            # 1500자의 길이는 이러한 흐름을 유지하면서도
+            # 한 번에 처리할 수 있는 적절한 양의 정보를 담을 수 있음
+            # 1500, 1000 선택 해도됨
+            max_chunk_length=1500,  # 실제 적용 값, 최대 청크 길이 설정 #1000
             breakpoint_threshold_amount=70.0  #실제 적용 값, 청크 크기를 줄이기 위해 임계값 설정
         )
         
@@ -211,7 +216,6 @@ def get_text_chunks(documents):
         
         # 의미론적 청크 분할이 완료되었음을 알리는 로그 메시지 (생성된 청크 수 포함)
         logger.info(f"의미론적 청크 분할 완료, 청크 수: {len(semantic_chunks)}")
-
         logger.info("텍스트 청크 처리 성공")
         print(semantic_chunks) # semantic_chunks 결과 확인 
         return semantic_chunks  # 최종적으로 의미론적으로 작은 청크를 반환
