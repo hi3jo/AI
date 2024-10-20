@@ -1,3 +1,7 @@
+# 2 embedding.py
+# 임베딩 생성 및 데이터 저장 최적화
+# 시스템 리소스 사용량 모니터링
+
 import logging
 import os
 from langchain_huggingface.embeddings import HuggingFaceEmbeddings

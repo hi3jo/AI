@@ -1,3 +1,6 @@
+# 4 chroma_db.py
+# Chroma 벡터 데이터베이스와의 통신
+
 from langchain_community.vectorstores import Chroma
 import logging
 

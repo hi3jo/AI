@@ -1,5 +1,7 @@
-# 3 데이터 처리 모듈
+# 3 data_processing.py 데이터 처리 모듈
 # 이 모듈은 CSV 파일을 로드하고 텍스트를 청크로 분리하는 기능 제공
+# CSV 파일 로드 및 데이터 전처리
+# 텍스트 청크 분리
 
 import re
 import logging

@@ -1,3 +1,8 @@
+# 1 upload.py
+# 임베딩 모델 로드 및 문서 처리
+# CSV 파일 로드
+# 텍스트 청크 및 임베딩 생성
+
 import pandas as pd
 from sentence_transformers import SentenceTransformer
 from langchain.text_splitter import RecursiveCharacterTextSplitter
