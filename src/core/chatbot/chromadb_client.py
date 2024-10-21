@@ -9,6 +9,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 # ChromaDB 클라이언트 및 컬렉션 초기화 함수
+# get_chroma_client() ChromaDB 클라이언트를 초기화하여 데이터를 저장하고, 검색할 수 있는 환경을 제공
 def get_chroma_client():
     client = chromadb.PersistentClient(path="./data")
     collection = client.get_or_create_collection(name="case-law2", metadata={"hnsw:space": "cosine"})
@@ -28,6 +29,7 @@ def get_chroma_client():
 
 #     return chroma_client
 
+# 사용자가 질문을 입력하면, 이를 벡터로 변환한 후 유사 문서를 검색
 # 쿼리를 벡터화하여 유사한 문서 검색 함수 정의
 def search_similar_documents(query, collection, num_results=5):
     query_embedding = ko_embedding.embed_query(query)

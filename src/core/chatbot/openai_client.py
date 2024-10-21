@@ -117,6 +117,7 @@ def classify_question(query_text):
         raise ValueError("질문 분류 중 오류가 발생했습니다.")
 
 # 질문에 대해 답변을 생성하는 함수
+# 유사 문서를 찾은 후, 이를 기반으로 OpenAI를 통해 답변을 생성하는 코드
 def get_answer(question):
     collection = get_chroma_client()
     docs, metadatas = chroma_retriever(query=question, collection=collection, embeddings=ko_embedding)
